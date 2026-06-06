@@ -171,7 +171,7 @@ html, body, #root {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10vh 6vw 18vh;
+  padding: 6vh 2vw 14vh;
   z-index: 0;
   will-change: transform;
   overflow: visible;
@@ -181,29 +181,29 @@ html, body, #root {
   position: relative;
   display: grid;
   place-items: center;
-  width: 76%;
-  max-width: 460px;
-  max-height: 90vh;
+  width: 92%;
+  max-width: 640px;
+  max-height: 96vh;
   overflow: visible;
 }
 
 .flower-stage--hero .flower-images {
-  width: 86%;
-  max-width: 520px;
-  max-height: 92vh;
+  width: 98%;
+  max-width: 720px;
+  max-height: 98vh;
 }
 
 .flower-stage--app .flower-images {
-  width: 72%;
-  max-width: 420px;
-  max-height: 86vh;
+  width: 90%;
+  max-width: 600px;
+  max-height: 94vh;
 }
 
 .flower-image {
   display: block;
   width: 100%;
   height: auto;
-  max-height: 84vh;
+  max-height: 96vh;
   object-fit: contain;
   object-position: center center;
   will-change: transform, opacity, filter;
@@ -213,7 +213,7 @@ html, body, #root {
   grid-area: 1 / 1;
   width: 100%;
   height: auto;
-  max-height: 84vh;
+  max-height: 96vh;
 }
 
 .flower-stage--app .flower-image--layer {
