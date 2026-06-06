@@ -1,91 +1,97 @@
 import { useState, useCallback, useRef } from 'react';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SR = any;
+const GROQ_KEY = (import.meta.env.VITE_GROQ_API_KEY as string) || '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';
 
 export function useVoice() {
   const [isListening, setIsListening] = useState(false);
-  const recRef = useRef<SR | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef        = useRef<Blob[]>([]);
+  const streamRef        = useRef<MediaStream | null>(null);
 
   const stopListening = useCallback(() => {
-    if (recRef.current) {
-      recRef.current.abort();
-      recRef.current = null;
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
     }
     setIsListening(false);
   }, []);
 
+  // startListening: returns a Promise that resolves with the transcript string
   const startListening = useCallback((): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      // Stop any previous session
-      if (recRef.current) {
-        recRef.current.abort();
-        recRef.current = null;
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const SRClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
-      if (!SRClass) {
-        reject(new Error('Speech recognition is not supported in this browser. Try Chrome or Safari.'));
-        return;
-      }
-
-      const rec: SR = new SRClass();
-      rec.lang = 'en-US';
-      rec.interimResults = false;
-      rec.maxAlternatives = 1;
-      rec.continuous = false;
-
-      recRef.current = rec;
-      setIsListening(true);
-
-      let resolved = false;
-
-      rec.onresult = (e: SR) => {
-        const transcript = e.results[0]?.[0]?.transcript?.trim() ?? '';
-        if (!resolved) {
-          resolved = true;
-          recRef.current = null;
-          setIsListening(false);
-          resolve(transcript);
-        }
-      };
-
-      rec.onerror = (e: SR) => {
-        if (!resolved) {
-          resolved = true;
-          recRef.current = null;
-          setIsListening(false);
-          if (e.error === 'not-allowed') {
-            reject(new Error('Microphone permission denied. Please allow microphone access and try again.'));
-          } else if (e.error === 'no-speech') {
-            reject(new Error('No speech detected. Please try again.'));
-          } else if (e.error === 'aborted') {
-            reject(new Error('aborted'));
-          } else {
-            reject(new Error(`Speech error: ${e.error}`));
-          }
-        }
-      };
-
-      // onend fires after onresult in Chrome — only reject if no result came
-      rec.onend = () => {
-        setIsListening(false);
-        if (!resolved) {
-          resolved = true;
-          recRef.current = null;
-          reject(new Error('No speech detected. Please try again.'));
-        }
-      };
-
+    return new Promise(async (resolve, reject) => {
       try {
-        rec.start();
-      } catch (err) {
-        resolved = true;
-        recRef.current = null;
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        streamRef.current = stream;
+
+        // Pick the best supported MIME type
+        const mimeType = ['audio/webm', 'audio/ogg', 'audio/mp4', '']
+          .find(m => !m || MediaRecorder.isTypeSupported(m)) ?? '';
+
+        const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+        mediaRecorderRef.current = recorder;
+        chunksRef.current = [];
+
+        recorder.ondataavailable = e => {
+          if (e.data.size > 0) chunksRef.current.push(e.data);
+        };
+
+        recorder.onstop = async () => {
+          stream.getTracks().forEach(t => t.stop());
+          streamRef.current = null;
+          setIsListening(false);
+
+          if (chunksRef.current.length === 0) {
+            reject(new Error('No audio recorded.'));
+            return;
+          }
+
+          const audioBlob = new Blob(chunksRef.current, { type: mimeType || 'audio/webm' });
+
+          // Send to Groq Whisper for transcription
+          try {
+            const form = new FormData();
+            const ext  = mimeType.includes('mp4') ? 'mp4' : mimeType.includes('ogg') ? 'ogg' : 'webm';
+            form.append('file', audioBlob, `audio.${ext}`);
+            form.append('model', 'whisper-large-v3-turbo');
+            form.append('language', 'en');
+
+            const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${GROQ_KEY}` },
+              body: form,
+            });
+
+            if (!res.ok) {
+              const err = await res.text().catch(() => res.status.toString());
+              reject(new Error(`Transcription failed: ${err}`));
+              return;
+            }
+
+            const data = await res.json();
+            const transcript = (data.text ?? '').trim();
+            resolve(transcript);
+          } catch (e) {
+            reject(e);
+          }
+        };
+
+        recorder.onerror = () => {
+          reject(new Error('Recording error.'));
+        };
+
+        recorder.start();
+        setIsListening(true);
+      } catch (e: unknown) {
         setIsListening(false);
-        reject(err);
+        const msg = e instanceof Error ? e.message : String(e);
+        if (msg.includes('Permission') || msg.includes('denied') || msg.includes('NotAllowed')) {
+          reject(new Error('Microphone access denied. Please allow microphone access and try again.'));
+        } else {
+          reject(new Error(`Microphone error: ${msg}`));
+        }
       }
     });
   }, []);

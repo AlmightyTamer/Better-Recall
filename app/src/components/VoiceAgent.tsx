@@ -23,13 +23,9 @@ export default function VoiceAgent() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef   = useRef<HTMLInputElement>(null);
 
-  // Detect speech recognition availability on mount
+  // Mic available whenever mediaDevices is present (works on all modern HTTPS browsers)
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const hasSTT = !!(window as any).SpeechRecognition || !!(window as any).webkitSpeechRecognition;
-    // Web Speech API requires HTTPS or localhost
-    const isSecure = location.protocol === 'https:' || location.hostname === 'localhost';
-    setSpeechAvail(hasSTT && isSecure);
+    setSpeechAvail(!!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia));
   }, []);
 
   const sendMessage = useCallback(async (transcript: string) => {
@@ -78,19 +74,29 @@ export default function VoiceAgent() {
   const handleMic = useCallback(async () => {
     unlockAudio(); // must be called inside user gesture to satisfy iOS autoplay
     setErrMsg('');
+
     if (status === 'speaking') { stopSpeaking(); setStatus('idle'); return; }
-    if (status === 'listening') { stopListening(); setStatus('idle'); return; }
     if (status === 'thinking') return;
 
+    // If already recording — stop and transcribe
+    if (status === 'listening') {
+      stopListening();
+      return;
+    }
+
+    // Start recording
     try {
       setStatus('listening');
       const transcript = await startListening();
-      if (transcript) await sendMessage(transcript);
-      else setStatus('idle');
+      if (transcript.trim()) {
+        await sendMessage(transcript);
+      } else {
+        setStatus('idle');
+        setErrMsg('No speech detected. Try again.');
+      }
     } catch (e: unknown) {
       setStatus('idle');
       const msg = e instanceof Error ? e.message : String(e);
-      if (msg === 'aborted') return;
       setErrMsg(msg.includes('denied') ? 'Microphone access denied. Please type your message below.' : msg);
     }
   }, [status, startListening, stopListening, sendMessage]);
@@ -122,7 +128,7 @@ export default function VoiceAgent() {
             <div style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: 20, color: 'var(--text)' }}>Hello, I am Clara</div>
             <p className="t-body" style={{ maxWidth: 280, fontSize: 14 }}>
               {speechAvail
-                ? 'Type a message or tap the microphone to speak.'
+                ? 'Tap the mic to start recording. Tap again to send. Or just type below.'
                 : 'Type a message below and I will respond with my voice.'}
             </p>
             {!speechAvail && (
@@ -188,14 +194,8 @@ export default function VoiceAgent() {
         <div style={{ padding: '8px 16px', background: status === 'listening' ? '#F0FDF4' : '#ECFDF5', borderTop: '1px solid rgba(22,163,74,0.15)', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--green)', animation: 'dotBounce 1s ease infinite' }} />
           <span style={{ fontSize: 13, color: 'var(--green)', fontFamily: 'Inter', fontWeight: 600 }}>
-            {status === 'listening' ? 'Listening — speak now...' : 'Clara is speaking...'}
+            {status === 'listening' ? 'Recording — tap mic to stop & send' : 'Clara is speaking...'}
           </span>
-          {status === 'listening' && (
-            <button onClick={() => { stopListening(); setStatus('idle'); }}
-              style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter', fontWeight: 600 }}>
-              Cancel
-            </button>
-          )}
           {status === 'speaking' && (
             <button onClick={() => { stopSpeaking(); setStatus('idle'); }}
               style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter', fontWeight: 600 }}>
