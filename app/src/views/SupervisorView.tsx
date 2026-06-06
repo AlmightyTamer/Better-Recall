@@ -31,6 +31,7 @@ export default function SupervisorView() {
   return (
     <StudioShell
       flowerSrc={TAB_FLOWERS[activeTab]}
+      contentKey={activeTab}
       dimOverlay={0.76}
       header={
         <>

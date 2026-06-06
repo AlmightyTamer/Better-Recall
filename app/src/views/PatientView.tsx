@@ -46,6 +46,7 @@ export default function PatientView() {
   return (
     <StudioShell
       flowerSrc={TAB_FLOWERS[activeTab]}
+      contentKey={activeTab}
       header={
         <div className="studio-header">
           <span className="studio-header__title">Recall</span>

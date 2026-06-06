@@ -1,11 +1,13 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import FlowerStage from './FlowerStage';
+import AnimatedPanel from './AnimatedPanel';
 import { FLOWERS } from '../flowers';
 import { useAppStore } from '../store/appStore';
 import { db } from '../db/db';
 import { seedIfEmpty } from '../db/seed';
+import { duration, EASE } from '../lib/motion';
 
 const SUPERVISOR_PASSWORD = 'care2024';
 
@@ -18,21 +20,48 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [transitioning, setTransitioning] = useState(false);
+  const screenRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const swapFlower = (src: string) => setFlowerSrc(src);
 
+  useEffect(() => {
+    if (!error) return;
+    const el = panelRef.current?.querySelector('.studio-error');
+    if (el) {
+      gsap.fromTo(el, { x: -8 }, { x: 0, duration: 0.45, ease: 'elastic.out(1, 0.55)' });
+    }
+  }, [error]);
+
   useGSAP(
     () => {
       if (transitioning) {
-        gsap.to('.login-panel', { opacity: 0, y: 12, duration: 0.5, ease: 'power2.inOut' });
-        gsap.to('.login-top', { opacity: 0, duration: 0.4 });
+        const tl = gsap.timeline({ defaults: { ease: EASE.smooth } });
+        tl.to('.login-panel', { opacity: 0, y: 16, duration: duration(0.55) }, 0)
+          .to('.login-top', { opacity: 0, y: -8, duration: duration(0.45) }, 0)
+          .to('.flower-stage', { opacity: 0.6, duration: duration(0.7) }, 0);
       } else {
-        gsap.fromTo('.login-top', { opacity: 0, y: -12 }, { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out' });
-        gsap.fromTo('.login-panel', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', delay: 0.1 });
+        gsap.fromTo(
+          '.login-top',
+          { opacity: 0, y: -14 },
+          { opacity: 1, y: 0, duration: duration(0.9), ease: EASE.enter }
+        );
+        gsap.fromTo(
+          '.login-panel',
+          { opacity: 0, y: 24 },
+          { opacity: 1, y: 0, duration: duration(0.85), ease: EASE.enter, delay: 0.15 }
+        );
+        gsap.from('.login-actions .studio-btn', {
+          opacity: 0,
+          y: 12,
+          duration: duration(0.5),
+          ease: EASE.enter,
+          stagger: 0.08,
+          delay: 0.35,
+        });
       }
     },
-    { scope: panelRef, dependencies: [transitioning] }
+    { scope: screenRef, dependencies: [transitioning] }
   );
 
   const enterApp = (target: 'patient' | 'supervisor') => {
@@ -41,7 +70,7 @@ export default function LoginScreen() {
     setTimeout(() => {
       setScreen(target);
       setTransitioning(false);
-    }, 950);
+    }, duration(1100, 50));
   };
 
   const handlePatientLogin = async () => {
@@ -64,7 +93,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <div className="studio-screen login-screen">
+    <div ref={screenRef} className="studio-screen login-screen">
       <FlowerStage src={flowerSrc} glowIntensity={0.9} variant="hero" />
 
       <div className="login-top">
@@ -74,7 +103,7 @@ export default function LoginScreen() {
 
       <div ref={panelRef} className="login-panel">
         {role === null && (
-          <>
+          <AnimatedPanel panelKey="landing" stagger>
             <p className="login-eyebrow">Sign in</p>
             <p className="login-greeting" style={{ marginBottom: 0 }}>Who is using Recall?</p>
             <div className="login-actions">
@@ -93,17 +122,17 @@ export default function LoginScreen() {
                 <span className="studio-btn__hint">Caregiver access</span>
               </button>
             </div>
-          </>
+          </AnimatedPanel>
         )}
 
         {role === 'patient' && (
-          <div className="animate-fadeIn">
+          <AnimatedPanel panelKey="patient" stagger>
             <p className="login-eyebrow">Patient</p>
             <p className="login-greeting">Welcome back, Margaret</p>
             <div className="login-actions" style={{ marginTop: 12 }}>
               <button
                 className="studio-btn studio-btn--primary tap-feedback"
-                onClick={() => { swapFlower(FLOWERS.patientEnter); setTimeout(handlePatientLogin, 420); }}
+                onClick={() => { swapFlower(FLOWERS.patientEnter); setTimeout(handlePatientLogin, 520); }}
               >
                 <span className="studio-btn__label">Enter Dashboard</span>
               </button>
@@ -111,11 +140,11 @@ export default function LoginScreen() {
                 Back
               </button>
             </div>
-          </div>
+          </AnimatedPanel>
         )}
 
         {role === 'supervisor' && (
-          <div className="animate-fadeIn">
+          <AnimatedPanel panelKey="supervisor" stagger>
             <p className="login-eyebrow">Supervisor</p>
             <p className="login-greeting">Caregiver sign in</p>
             <div className="login-actions" style={{ marginTop: 12 }}>
@@ -131,7 +160,7 @@ export default function LoginScreen() {
               {error && <p className="studio-error">{error}</p>}
               <button
                 className="studio-btn studio-btn--primary tap-feedback"
-                onClick={() => { swapFlower(FLOWERS.supervisorEnter); setTimeout(handleSupervisorLogin, 420); }}
+                onClick={() => { swapFlower(FLOWERS.supervisorEnter); setTimeout(handleSupervisorLogin, 520); }}
               >
                 <span className="studio-btn__label">Sign In</span>
               </button>
@@ -142,7 +171,7 @@ export default function LoginScreen() {
                 Back
               </button>
             </div>
-          </div>
+          </AnimatedPanel>
         )}
       </div>
     </div>
