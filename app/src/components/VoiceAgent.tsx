@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { useVoice } from '../hooks/useVoice';
 import { useACSE } from '../hooks/useACSE';
 import { claraChat } from '../services/groq';
-import { speak, stopSpeaking } from '../services/elevenlabs';
+import { speak, stopSpeaking, unlockAudio } from '../services/elevenlabs';
 import { useAppStore } from '../store/appStore';
 import { db } from '../db/db';
 
@@ -75,6 +75,7 @@ export default function VoiceAgent() {
   }, [checkRepeatQuestion, recordActivity, user]);
 
   const handleMic = useCallback(async () => {
+    unlockAudio(); // must be called inside user gesture to satisfy iOS autoplay
     setErrMsg('');
     if (status === 'speaking') { stopSpeaking(); setStatus('idle'); return; }
     if (status === 'listening') { stopListening(); setStatus('idle'); return; }
@@ -94,6 +95,7 @@ export default function VoiceAgent() {
   }, [status, startListening, stopListening, sendMessage]);
 
   const handleTextSend = async () => {
+    unlockAudio(); // must be called inside user gesture to satisfy iOS autoplay
     if (!textInput.trim() || status === 'thinking') return;
     const t = textInput;
     setTextInput('');

@@ -1,12 +1,27 @@
-const KEY     = import.meta.env.VITE_ELEVENLABS_API_KEY as string;
+const KEY      = import.meta.env.VITE_ELEVENLABS_API_KEY as string;
 const VOICE_ID = 'XrExE9yKIg1WjnnlVkGX'; // Matilda — warm female
 const BASE     = 'https://api.elevenlabs.io/v1';
 
 let currentAudio: HTMLAudioElement | null = null;
+let currentSource: AudioBufferSourceNode | null = null;
+
+// Shared AudioContext — created/resumed on first user gesture to satisfy iOS autoplay policy
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let audioCtx: AudioContext | null = null;
+
+export function unlockAudio(): void {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const AC = window.AudioContext ?? (window as any).webkitAudioContext;
+    if (!AC) return;
+    if (!audioCtx) audioCtx = new AC();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  } catch { /* non-critical */ }
+}
 
 export function stopSpeaking(): void {
-  if (currentAudio) { currentAudio.pause(); currentAudio.src = ''; currentAudio = null; }
-  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  if (currentSource) { try { currentSource.stop(); } catch { /* already stopped */ } currentSource = null; }
+  if (currentAudio)  { currentAudio.pause(); currentAudio.src = ''; currentAudio = null; }
 }
 
 export async function speak(text: string): Promise<void> {
@@ -39,11 +54,34 @@ async function speakElevenLabs(text: string): Promise<void> {
     }
 
     const blob = await res.blob();
-    const url  = URL.createObjectURL(blob);
+
+    // Prefer AudioContext (bypasses iOS autoplay restriction)
+    if (audioCtx) {
+      try {
+        const arrayBuffer = await blob.arrayBuffer();
+        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+        await new Promise<void>((resolve, reject) => {
+          const source = audioCtx!.createBufferSource();
+          source.buffer = audioBuffer;
+          source.connect(audioCtx!.destination);
+          currentSource = source;
+          source.onended = () => { currentSource = null; resolve(); };
+          source.start();
+          // Safety timeout — resolve after duration + 2s buffer
+          setTimeout(resolve, (audioBuffer.duration + 2) * 1000);
+        });
+        return;
+      } catch (ctxErr) {
+        console.warn('[ElevenLabs] AudioContext playback failed, falling back to Audio element:', ctxErr);
+      }
+    }
+
+    // Fallback: standard Audio element
+    const url = URL.createObjectURL(blob);
     await new Promise<void>((resolve, reject) => {
       const audio = new Audio(url);
       currentAudio = audio;
-      audio.onended = () => { URL.revokeObjectURL(url); resolve(); };
+      audio.onended = () => { URL.revokeObjectURL(url); currentAudio = null; resolve(); };
       audio.onerror = (e) => { URL.revokeObjectURL(url); reject(new Error(`Audio playback failed: ${e}`)); };
       audio.play().catch(reject);
     });
