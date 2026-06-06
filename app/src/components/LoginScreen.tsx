@@ -51,14 +51,6 @@ export default function LoginScreen() {
           { opacity: 0, y: 24 },
           { opacity: 1, y: 0, duration: duration(0.85), ease: EASE.enter, delay: 0.15 }
         );
-        gsap.from('.login-actions .studio-btn', {
-          opacity: 0,
-          y: 12,
-          duration: duration(0.5),
-          ease: EASE.enter,
-          stagger: 0.08,
-          delay: 0.35,
-        });
       }
     },
     { scope: screenRef, dependencies: [transitioning] }

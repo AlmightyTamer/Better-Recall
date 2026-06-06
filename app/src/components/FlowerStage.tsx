@@ -163,8 +163,6 @@ export default function FlowerStage({
         </div>
       </div>
       <div className="flower-vignette" />
-      <div className="flower-letterbox flower-letterbox--top" />
-      <div className="flower-letterbox flower-letterbox--bottom" />
     </div>
   );
 }
