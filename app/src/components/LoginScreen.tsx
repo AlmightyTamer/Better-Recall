@@ -14,7 +14,7 @@ type Role = 'patient' | 'supervisor' | null;
 export default function LoginScreen() {
   const { setScreen, setUser } = useAppStore();
   const [role, setRole] = useState<Role>(null);
-  const [flowerSrc, setFlowerSrc] = useState(FLOWERS.landing);
+  const [flowerSrc, setFlowerSrc] = useState<string>(FLOWERS.landing);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [transitioning, setTransitioning] = useState(false);
