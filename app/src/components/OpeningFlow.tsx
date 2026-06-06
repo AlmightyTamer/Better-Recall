@@ -4,9 +4,9 @@ import gsap from 'gsap';
 import { db } from '../db/db';
 import { useAppStore } from '../store/appStore';
 import { LeafLogo } from './LeafLogo';
+import DewyLeafScene from './DewyLeafScene';
 
 const SUPERVISOR_PASSWORD = 'care';
-const HERO_SRC = `${import.meta.env.BASE_URL}dewy-leaf-hero.png`;
 
 type Phase = 'splash' | 'login' | 'zooming';
 
@@ -21,7 +21,6 @@ export default function OpeningFlow() {
 
   const rootRef = useRef<HTMLDivElement>(null);
   const leafRef = useRef<HTMLDivElement>(null);
-  const leafImgRef = useRef<HTMLImageElement>(null);
   const loginRef = useRef<HTMLDivElement>(null);
   const splashRef = useRef<HTMLDivElement>(null);
   const flashRef = useRef<HTMLDivElement>(null);
@@ -58,14 +57,14 @@ export default function OpeningFlow() {
     });
 
     tl.to(loginRef.current, { opacity: 0, y: 60, scale: 0.96, duration: 0.35, ease: 'power2.in' }, 0)
-      .to(leafImgRef.current, {
-        scale: 14,
+      .to(leafRef.current, {
+        scale: 8,
         opacity: 0,
-        filter: 'blur(12px) brightness(1.4)',
+        filter: 'blur(10px) brightness(1.3)',
         duration: 1.1,
         ease: 'power4.in',
+        transformOrigin: '50% 45%',
       }, 0.05)
-      .to(leafRef.current, { scale: 1.2, duration: 1.1, ease: 'power4.in' }, 0.05)
       .to(glowRef.current, { scale: 3, opacity: 0.9, duration: 0.9, ease: 'power2.in' }, 0.1)
       .fromTo(flashRef.current,
         { opacity: 0 },
@@ -111,17 +110,8 @@ export default function OpeningFlow() {
         ))}
       </div>
 
-      {/* Hero leaf */}
-      <div ref={leafRef} className="opening-leaf-wrap">
-        <img
-          ref={leafImgRef}
-          src={HERO_SRC}
-          alt=""
-          className="opening-leaf-img"
-          draggable={false}
-        />
-        <div className="opening-leaf-shine" aria-hidden />
-      </div>
+      {/* Full-screen cartoon leaf scene */}
+      <DewyLeafScene ref={leafRef} />
 
       {/* Splash */}
       <div ref={splashRef} className="opening-splash">

@@ -359,35 +359,55 @@ body {
   animation: dewSparkle 3s ease-in-out infinite;
 }
 
-.opening-leaf-wrap {
-  position: relative;
+/* Full-screen dewy leaf scene */
+.dewy-scene {
+  position: fixed; inset: 0;
   z-index: 3;
-  width: min(92vw, 480px);
-  height: min(72vh, 640px);
-  display: flex; align-items: center; justify-content: center;
-  will-change: transform;
-}
-.opening-leaf-img {
-  width: 100%; height: 100%;
-  object-fit: contain;
-  object-position: center;
-  filter: drop-shadow(0 24px 48px rgba(22,163,74,0.18)) saturate(1.08);
+  overflow: hidden;
   will-change: transform, opacity, filter;
-  animation: leafFloat 5s ease-in-out infinite;
 }
-.opening-leaf-shine {
-  position: absolute; inset: 8% 12%;
-  background: linear-gradient(125deg, transparent 40%, rgba(255,255,255,0.35) 50%, transparent 60%);
+.dewy-scene-bg {
+  position: absolute; inset: -4%;
+  background-size: cover;
+  background-position: center;
+  filter: saturate(1.15) brightness(0.95);
+  opacity: 0.55;
   pointer-events: none;
-  animation: leafShine 4s ease-in-out infinite;
+}
+.dewy-stem {
+  position: absolute;
+  left: 50%; top: -2%;
+  transform: translateX(-50%);
+  width: 80px; height: 105%;
+  z-index: 4;
+  filter: drop-shadow(0 4px 12px rgba(22,101,52,0.25));
+  animation: stemSway 6s ease-in-out infinite;
+  transform-origin: 50% 0%;
+}
+.dewy-leaf {
+  position: absolute;
+  transform-origin: 50% 92%;
+  will-change: transform;
+  filter: drop-shadow(0 8px 20px rgba(22,101,52,0.18));
+  pointer-events: none;
+}
+.dewy-leaf--sway-a { animation: leafSwayA 4.2s ease-in-out infinite; }
+.dewy-leaf--sway-b { animation: leafSwayB 5.1s ease-in-out infinite; }
+.dewy-leaf--sway-c { animation: leafSwayC 3.8s ease-in-out infinite; }
+.dewy-leaf--sway-d { animation: leafSwayD 4.7s ease-in-out infinite; }
+.dewy-scene-vignette {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 40%, transparent 30%, rgba(20,53,42,0.12) 100%);
+  pointer-events: none; z-index: 9;
 }
 
 .opening-splash {
-  position: absolute; inset: 0; z-index: 5;
+  position: absolute; inset: 0; z-index: 10;
   display: flex; flex-direction: column;
   align-items: center; justify-content: flex-end;
   padding: 0 28px calc(48px + var(--sab));
   pointer-events: none;
+  background: linear-gradient(180deg, transparent 40%, rgba(248,253,249,0.5) 65%, rgba(248,253,249,0.88) 100%);
 }
 .opening-splash > * { pointer-events: auto; }
 
@@ -425,7 +445,7 @@ body {
 }
 
 .opening-login {
-  position: absolute; inset: 0; z-index: 6;
+  position: absolute; inset: 0; z-index: 11;
   display: flex; flex-direction: column;
   justify-content: flex-end;
   padding: 24px 20px calc(28px + var(--sab));
@@ -533,13 +553,29 @@ body {
   0%, 100% { opacity: 0.3; transform: scale(0.8); }
   50%      { opacity: 1; transform: scale(1.15); }
 }
-@keyframes leafFloat {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50%      { transform: translateY(-10px) rotate(0.6deg); }
+@keyframes stemSway {
+  0%, 100% { transform: translateX(-50%) rotate(0deg); }
+  33%      { transform: translateX(-50%) rotate(1.2deg); }
+  66%      { transform: translateX(-50%) rotate(-0.8deg); }
 }
-@keyframes leafShine {
-  0%, 100% { opacity: 0; transform: translateX(-30%); }
-  40%, 60% { opacity: 0.6; transform: translateX(30%); }
+@keyframes leafSwayA {
+  0%, 100% { transform: rotate(var(--base-rot, 0deg)) translateX(0); }
+  25%      { transform: rotate(calc(var(--base-rot, 0deg) + 4deg)) translateX(4px); }
+  75%      { transform: rotate(calc(var(--base-rot, 0deg) - 3deg)) translateX(-3px); }
+}
+@keyframes leafSwayB {
+  0%, 100% { transform: rotate(var(--base-rot, 0deg)); }
+  40%      { transform: rotate(calc(var(--base-rot, 0deg) + 6deg)); }
+  70%      { transform: rotate(calc(var(--base-rot, 0deg) - 5deg)); }
+}
+@keyframes leafSwayC {
+  0%, 100% { transform: rotate(var(--base-rot, 0deg)) translateY(0); }
+  50%      { transform: rotate(calc(var(--base-rot, 0deg) + 4deg)) translateY(-6px); }
+}
+@keyframes leafSwayD {
+  0%, 100% { transform: rotate(var(--base-rot, 0deg)); }
+  30%      { transform: rotate(calc(var(--base-rot, 0deg) - 6deg)); }
+  60%      { transform: rotate(calc(var(--base-rot, 0deg) + 5deg)); }
 }
 @keyframes viewEnter {
   from { opacity: 0; transform: scale(1.04); }
