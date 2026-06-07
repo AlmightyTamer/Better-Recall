@@ -23,7 +23,9 @@ export type IconName =
   | 'stable'
   | 'moderate'
   | 'low'
-  | 'flower';
+  | 'flower'
+  | 'refresh'
+  | 'sun';
 
 interface StudioIconProps {
   name: IconName;
@@ -173,6 +175,19 @@ const PATHS: Record<IconName, JSX.Element> = {
     <>
       <circle cx="12" cy="12" r="2.5" />
       <path d="M12 4v3M12 17v3M4 12h3M17 12h3M6.3 6.3l2.1 2.1M15.6 15.6l2.1 2.1M17.7 6.3l-2.1 2.1M8.4 15.6l-2.1 2.1" />
+    </>
+  ),
+  refresh: (
+    <>
+      <path d="M4 12a8 8 0 0113.5-5.7" />
+      <path d="M20 12a8 8 0 01-13.5 5.7" />
+      <path d="M16 4.5V8h-3.5M8 19.5V16h3.5" />
+    </>
+  ),
+  sun: (
+    <>
+      <circle cx="12" cy="12" r="3.5" />
+      <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4" />
     </>
   ),
 };

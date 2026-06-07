@@ -62,6 +62,9 @@ export default function LoadingScreen() {
         <RecallLogo size="lg" />
         <p className="splash-tagline">Cognitive Care</p>
       </div>
+      <div className="splash-progress" aria-hidden>
+        <div className="splash-progress__bar" />
+      </div>
     </div>
   );
 }

@@ -21,7 +21,7 @@ export default function StudioShell({
   contentKey,
   header,
   footer,
-  dimOverlay = 0.82,
+  dimOverlay = 0.76,
 }: StudioShellProps) {
   const scrimRef = useRef<HTMLDivElement>(null);
   const prevFlower = useRef(flowerSrc);

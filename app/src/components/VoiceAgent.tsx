@@ -14,6 +14,12 @@ interface Turn {
 
 const VOICE_PREF_KEY = 'recall_clara_voice';
 
+const SUGGESTIONS = [
+  'What should I do next?',
+  'How am I doing today?',
+  'Tell me about my medications',
+];
+
 export default function VoiceAgent() {
   const user = useAppStore((s) => s.user);
   const [turns, setTurns] = useState<Turn[]>([]);
@@ -25,10 +31,17 @@ export default function VoiceAgent() {
   const { checkRepeatQuestion, recordActivity } = useACSE();
   const historyRef = useRef<{ role: 'user' | 'assistant'; content: string }[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     localStorage.setItem(VOICE_PREF_KEY, voiceOn ? 'on' : 'off');
   }, [voiceOn]);
+
+  useEffect(() => {
+    const el = messagesRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [turns, status, speaking]);
 
   const sendMessage = useCallback(async (text: string) => {
     const trimmed = text.trim();
@@ -65,17 +78,24 @@ export default function VoiceAgent() {
     inputRef.current?.focus();
 
     if (voiceOn) {
-      void speak(response);
+      setSpeaking(true);
+      try {
+        await speak(response);
+      } finally {
+        setSpeaking(false);
+      }
     }
   }, [status, checkRepeatQuestion, recordActivity, user, voiceOn]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    unlockAudioPlayback();
     void sendMessage(input);
   };
 
   const handleMicTap = useCallback(async () => {
     if (status !== 'idle') return;
+    unlockAudioPlayback();
 
     try {
       setStatus('listening');
@@ -106,36 +126,47 @@ export default function VoiceAgent() {
 
   return (
     <div className="clara-chat">
-      <div className="studio-scroll clara-chat__messages clara-chat__messages--selectable">
+      <div
+        ref={messagesRef}
+        className="studio-scroll clara-chat__messages clara-chat__messages--selectable"
+      >
         {turns.length === 0 && (
           <div className="clara-chat__empty">
             <div className="clara-chat__empty-icon">
               <StudioIcon name="chat" size={36} />
             </div>
-            <p className="studio-text-bright" style={{ fontSize: 20 }}>Hi, I'm Clara.</p>
-            <p className="studio-text-muted" style={{ fontSize: 17 }}>
+            <p className="clara-chat__empty-title">Hi, I'm Clara</p>
+            <p className="clara-chat__empty-sub">
               Ask me anything — I'll read my answers aloud.
             </p>
+            <div className="clara-suggestions">
+              {SUGGESTIONS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  className="clara-suggestion tap-feedback"
+                  onClick={() => {
+                    unlockAudioPlayback();
+                    void sendMessage(s);
+                  }}
+                  disabled={status !== 'idle'}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
         )}
         {turns.map((t, i) => (
           <div key={i} className={`clara-chat__row clara-chat__row--${t.role}`}>
-            <div style={{ maxWidth: '82%', display: 'flex', flexDirection: 'column', gap: 6, alignItems: t.role === 'user' ? 'flex-end' : 'flex-start' }}>
-              <div
-                className={t.role === 'user' ? 'studio-bubble-user' : 'studio-bubble-assistant'}
-                style={{
-                  padding: '12px 16px',
-                  borderRadius: t.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                  fontSize: 18,
-                  lineHeight: 1.5,
-                }}
-              >
+            <div className="clara-chat__bubble-wrap">
+              <div className={`clara-chat__bubble clara-chat__bubble--${t.role}`}>
                 {t.content}
               </div>
               {t.role === 'assistant' && (
                 <button
                   type="button"
-                  className="studio-icon-btn tap-feedback"
+                  className="clara-chat__listen tap-feedback"
                   onClick={() => {
                     unlockAudioPlayback();
                     stopSpeaking();
@@ -143,10 +174,9 @@ export default function VoiceAgent() {
                     void speak(t.content).finally(() => setSpeaking(false));
                   }}
                   aria-label="Listen to Clara again"
-                  style={{ padding: '6px 10px', fontSize: 13 }}
                 >
                   <StudioIcon name="speaker" size={16} />
-                  <span style={{ marginLeft: 6 }}>Listen again</span>
+                  <span>Listen again</span>
                 </button>
               )}
             </div>
@@ -156,7 +186,7 @@ export default function VoiceAgent() {
           <div className="clara-chat__row clara-chat__row--assistant">
             <div className="studio-bubble-assistant clara-chat__thinking">
               <StudioIcon name="thinking" size={20} />
-              <span className="studio-text-muted" style={{ marginLeft: 8, fontSize: 15 }}>Thinking…</span>
+              <span>Thinking…</span>
             </div>
           </div>
         )}
@@ -171,7 +201,7 @@ export default function VoiceAgent() {
             onClick={toggleVoice}
             aria-pressed={voiceOn}
           >
-            <StudioIcon name={voiceOn ? 'speaker' : 'speaker'} size={16} />
+            <StudioIcon name="speaker" size={16} />
             <span>{voiceOn ? 'Voice on' : 'Voice off'}</span>
           </button>
         </div>
