@@ -71,7 +71,7 @@ export default function PatientView() {
     <StudioShell
       flowerSrc={flowers[TAB_FLOWER_KEYS[activeTab]]}
       contentKey={activeTab}
-      dimOverlay={0.74}
+      dimOverlay={0.76}
       header={
         <div className="studio-header">
           <RecallLogo size="sm" />

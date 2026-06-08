@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import StudioIcon from './StudioIcon';
+import { useAppStore } from '../store/appStore';
 
 type Phase = 'in' | 'hold' | 'out' | 'done';
 
@@ -9,6 +10,8 @@ interface BreathingCircleProps {
 }
 
 export default function BreathingCircle({ onComplete, cycles = 3 }: BreathingCircleProps) {
+  const theme = useAppStore((s) => s.theme);
+  const isLight = theme === 'light';
   const [phase, setPhase] = useState<Phase>('in');
   const [cycleCount, setCycleCount] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(4);
@@ -64,13 +67,13 @@ export default function BreathingCircle({ onComplete, cycles = 3 }: BreathingCir
     '';
 
   const circleColor =
-    phase === 'in' ? 'rgba(255,255,255,0.18)' :
-    phase === 'hold' ? 'rgba(255,255,255,0.12)' :
-    phase === 'out' ? 'rgba(255,255,255,0.08)' :
+    phase === 'in' ? (isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.18)') :
+    phase === 'hold' ? (isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.12)') :
+    phase === 'out' ? (isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.08)') :
     'rgba(16,185,129,0.2)';
 
-  const borderColor = phase === 'done' ? '#10B981' : 'rgba(255,255,255,0.45)';
-  const textColor = phase === 'done' ? '#10B981' : '#ffffff';
+  const borderColor = phase === 'done' ? '#10B981' : (isLight ? 'rgba(0,0,0,0.18)' : 'rgba(255,255,255,0.45)');
+  const textColor = phase === 'done' ? '#10B981' : undefined;
 
   return (
     <div className="breathing-circle">

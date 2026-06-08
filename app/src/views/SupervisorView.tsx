@@ -61,9 +61,8 @@ export default function SupervisorView() {
               <span style={{ flex: 1 }}>{supervisorAlerts[0].message}</span>
               <button
                 onClick={() => clearSupervisorAlert(supervisorAlerts[0].id)}
-                className="studio-icon-btn tap-feedback"
+                className="studio-icon-btn tap-feedback alert-banner__dismiss"
                 aria-label="Dismiss alert"
-                style={{ border: 'none', background: 'rgba(255,255,255,0.15)', color: 'white' }}
               >
                 <StudioIcon name="close" size={16} />
               </button>
@@ -266,7 +265,7 @@ function EventsTab({ user }: { user: User | null }) {
   };
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
+    <div className="events-tab studio-scroll">
       {/* Caregiver quick message */}
       <div className="card" style={{ padding: 16, marginBottom: 16 }}>
         <p className="studio-section-title">Quick Caregiver Note</p>
@@ -373,7 +372,7 @@ function EventsTab({ user }: { user: User | null }) {
               <button
                 onClick={() => handleToggleComplete(e)}
                 className="studio-icon-btn tap-feedback"
-                style={{ background: e.completed ? 'rgba(255,255,255,0.12)' : 'var(--studio-surface-soft)' }}
+                style={{ background: e.completed ? 'var(--studio-surface-soft)' : 'var(--studio-card-bg)' }}
                 aria-label={e.completed ? 'Mark incomplete' : 'Mark complete'}
               >
                 <StudioIcon name={e.completed ? 'check' : 'circle'} size={16} />
@@ -541,7 +540,7 @@ function StatsTab({ user }: { user: User | null }) {
     '#EF4444';
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
+    <div className="stats-tab studio-scroll">
       <VitalsDashboard patientName={user?.name} />
 
       <h2 className="studio-page-title" style={{ marginTop: 8 }}>ACSE — Cognitive Score</h2>
@@ -559,7 +558,7 @@ function StatsTab({ user }: { user: User | null }) {
         <div className="card" style={{ padding: 16, marginBottom: 16 }}>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.12)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--studio-border)" />
               <XAxis dataKey="time" tick={{ fontSize: 11 }} />
               <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
               <Tooltip
@@ -659,7 +658,7 @@ function ProfileTab() {
   );
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
+    <div className="profile-tab studio-scroll">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <h2 className="studio-page-title" style={{ margin: 0 }}>Patient Profile</h2>
         <button

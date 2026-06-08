@@ -26,6 +26,7 @@ export default function StudioShell({
 }: StudioShellProps) {
   const theme = useAppStore((s) => s.theme);
   const resolvedFlower = flowerSrc ?? getFlowers(theme).home;
+  const effectiveOverlay = theme === 'light' ? Math.min(dimOverlay, 0.34) : dimOverlay;
   const scrimRef = useRef<HTMLDivElement>(null);
   const prevFlower = useRef(resolvedFlower);
 
@@ -51,7 +52,7 @@ export default function StudioShell({
       <div
         ref={scrimRef}
         className="studio-app-scrim"
-        style={{ '--scrim-opacity': String(dimOverlay) } as CSSProperties}
+        style={{ '--scrim-opacity': String(effectiveOverlay) } as CSSProperties}
       />
       {header}
       <AnimatedPanel panelKey={contentKey ?? resolvedFlower} className="studio-app-content">
