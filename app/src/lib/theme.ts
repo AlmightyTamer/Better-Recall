@@ -3,8 +3,8 @@ export type ThemeMode = 'dark' | 'light';
 const STORAGE_KEY = 'recall-theme';
 
 export const THEME_COLORS: Record<ThemeMode, string> = {
-  dark: '#1A1420',
-  light: '#FFF5EE',
+  dark: '#0F0A1A',
+  light: '#FDF2F8',
 };
 
 export function getStoredTheme(): ThemeMode {
