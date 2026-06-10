@@ -5,11 +5,15 @@ export interface User {
   name: string;
   age: number;
   city: string;
+  homeAddress?: string;
   caregiverName: string;
   caregiverRelationship: string;
   caregiverPhone?: string;
   familyPhotoUrl?: string;
   calmingMusicUrl?: string;
+  emergencyNote?: string;
+  patientPin?: string;
+  onboardingComplete?: boolean;
   medications: Medication[];
   createdAt: string;
 }
@@ -17,7 +21,7 @@ export interface User {
 export interface Medication {
   name: string;
   dosage: string;
-  schedule: string[]; // e.g. ["8:00 AM", "8:00 PM"]
+  schedule: string[];
 }
 
 export interface Event {
@@ -55,7 +59,7 @@ export interface SupervisorAlertRecord {
   userId: number;
   message: string;
   timestamp: string;
-  type: 'comfort_mode' | 'medication_unconfirmed' | 'general' | 'presence';
+  type: 'comfort_mode' | 'medication_unconfirmed' | 'general' | 'presence' | 'sos';
   dismissed: boolean;
 }
 
@@ -69,6 +73,42 @@ export interface MemoryAnchorRecord {
   generatedAt: string;
 }
 
+export interface EmergencyContact {
+  id?: number;
+  userId: number;
+  name: string;
+  relationship: string;
+  phone: string;
+  isPrimary?: boolean;
+}
+
+export interface RoutineTask {
+  id?: number;
+  userId: number;
+  label: string;
+  period: 'morning' | 'afternoon' | 'evening';
+  sortOrder: number;
+  completedAt?: string;
+}
+
+export interface FamiliarFace {
+  id?: number;
+  userId: number;
+  name: string;
+  relationship: string;
+  photoUrl: string;
+  memoryPrompt: string;
+}
+
+export interface CareJournalEntry {
+  id?: number;
+  userId: number;
+  timestamp: string;
+  mood: 'great' | 'good' | 'okay' | 'difficult';
+  note: string;
+  author: string;
+}
+
 class RecallDB extends Dexie {
   users!: Table<User>;
   events!: Table<Event>;
@@ -76,6 +116,10 @@ class RecallDB extends Dexie {
   acseScores!: Table<AcseScore>;
   supervisorAlerts!: Table<SupervisorAlertRecord>;
   memoryAnchors!: Table<MemoryAnchorRecord>;
+  emergencyContacts!: Table<EmergencyContact>;
+  routineTasks!: Table<RoutineTask>;
+  familiarFaces!: Table<FamiliarFace>;
+  careJournal!: Table<CareJournalEntry>;
 
   constructor() {
     super('RecallDB');
@@ -92,6 +136,18 @@ class RecallDB extends Dexie {
       acseScores: '++id, userId, timestamp',
       supervisorAlerts: '++id, userId, timestamp, dismissed',
       memoryAnchors: '++id, userId, generatedAt',
+    });
+    this.version(3).stores({
+      users: '++id, name',
+      events: '++id, userId, timestamp, type, completed',
+      medicationLogs: '++id, userId, medicationName, timestamp',
+      acseScores: '++id, userId, timestamp',
+      supervisorAlerts: '++id, userId, timestamp, dismissed',
+      memoryAnchors: '++id, userId, generatedAt',
+      emergencyContacts: '++id, userId',
+      routineTasks: '++id, userId, period',
+      familiarFaces: '++id, userId',
+      careJournal: '++id, userId, timestamp',
     });
   }
 }

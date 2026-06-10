@@ -17,6 +17,12 @@ import { logout } from '../lib/session';
 import CognitiveAurora from '../components/CognitiveAurora';
 import MemoryThreads from '../components/MemoryThreads';
 import PresencePulseBanner from '../components/PresencePulse';
+import WhereAmICard from '../components/WhereAmICard';
+import RoutineChecklist from '../components/RoutineChecklist';
+import FamiliarFaces from '../components/FamiliarFaces';
+import SafetyCircle from '../components/SafetyCircle';
+import EmergencySOS from '../components/EmergencySOS';
+import SettingsSheet from '../components/SettingsSheet';
 
 type Tab = 'home' | 'voice' | 'meds' | 'events' | 'stability';
 
@@ -56,6 +62,7 @@ function formatTime(ts: string): string {
 
 export default function PatientView() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const { user, acseScore, theme } = useAppStore();
   const flowers = getFlowers(theme);
   const { recordNavigation } = useACSE();
@@ -86,6 +93,13 @@ export default function PatientView() {
               <span className="studio-header__meta">{firstName}</span>
             </div>
             <ThemeToggle />
+            <button
+              onClick={() => setSettingsOpen(true)}
+              className="studio-icon-btn tap-feedback"
+              aria-label="Settings"
+            >
+              <StudioIcon name="settings" size={18} />
+            </button>
             <button
               onClick={logout}
               className="studio-icon-btn tap-feedback"
@@ -129,6 +143,8 @@ export default function PatientView() {
       {activeTab === 'meds' && <MedTracker />}
       {activeTab === 'events' && <EventsTab events={events ?? []} />}
       {activeTab === 'stability' && <ACSEDashboard />}
+      <EmergencySOS />
+      <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </StudioShell>
   );
 }
@@ -171,8 +187,12 @@ function HomeTab({
         </div>
       </div>
 
+      <WhereAmICard />
       <StateReconCard />
+      <RoutineChecklist />
       <MemoryThreads />
+      <FamiliarFaces />
+      <SafetyCircle />
 
       {dueMeds.length > 0 && (
         <button

@@ -14,6 +14,7 @@ import { duration, EASE } from '../lib/motion';
 import { checkSupervisorAuth } from '../lib/auth';
 import { loadUserSession } from '../lib/session';
 import StudioIcon from './StudioIcon';
+import OnboardingWizard from './OnboardingWizard';
 
 type Role = 'patient' | 'supervisor' | null;
 
@@ -28,6 +29,9 @@ export default function LoginScreen() {
   const [supervisorPatient, setSupervisorPatient] = useState<User | null>(null);
   const [error, setError] = useState('');
   const [transitioning, setTransitioning] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [patientPin, setPatientPin] = useState('');
+  const [pinError, setPinError] = useState('');
   const screenRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -109,6 +113,19 @@ export default function LoginScreen() {
     role === 'patient' && selectedPatient ? 3 :
     role === 'supervisor' && !supervisorPatient ? 2 :
     3;
+
+  if (showOnboarding) {
+    return (
+      <OnboardingWizard
+        onComplete={async (patient) => {
+          setShowOnboarding(false);
+          await loadUserSession(patient);
+          enterApp('patient');
+        }}
+        onCancel={() => setShowOnboarding(false)}
+      />
+    );
+  }
 
   return (
     <div ref={screenRef} className="studio-screen login-screen">
@@ -192,6 +209,13 @@ export default function LoginScreen() {
                 <p className="studio-text-muted">Loading profiles…</p>
               )}
               <button
+                className="studio-btn studio-btn--ghost tap-feedback"
+                onClick={() => setShowOnboarding(true)}
+              >
+                <StudioIcon name="add" size={18} />
+                <span className="studio-btn__label">Set up new profile</span>
+              </button>
+              <button
                 className="studio-btn studio-btn--text"
                 onClick={() => { swapFlower('landing'); setRole(null); }}
               >
@@ -206,15 +230,35 @@ export default function LoginScreen() {
             <p className="login-eyebrow">Patient</p>
             <p className="login-greeting">Welcome back, {selectedPatient.name.split(' ')[0]}</p>
             <div className="login-actions login-actions--role-select" style={{ marginTop: 12 }}>
+              {selectedPatient.patientPin && (
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={patientPin}
+                  onChange={(e) => { setPatientPin(e.target.value.replace(/\D/g, '')); setPinError(''); }}
+                  placeholder="Enter your PIN"
+                  className="studio-input"
+                  autoFocus
+                />
+              )}
+              {pinError && <p className="studio-error">{pinError}</p>}
               <button
                 className="studio-btn studio-btn--primary tap-feedback"
-                onClick={() => { swapFlower('patientEnter'); setTimeout(() => handlePatientLogin(selectedPatient), 520); }}
+                onClick={() => {
+                  if (selectedPatient.patientPin && patientPin !== selectedPatient.patientPin) {
+                    setPinError('Incorrect PIN. Try again.');
+                    return;
+                  }
+                  swapFlower('patientEnter');
+                  setTimeout(() => handlePatientLogin(selectedPatient), 520);
+                }}
               >
                 <span className="studio-btn__label">Enter Dashboard</span>
               </button>
               <button
                 className="studio-btn studio-btn--text"
-                onClick={() => { setSelectedPatient(null); swapFlower('landing'); }}
+                onClick={() => { setSelectedPatient(null); setPatientPin(''); setPinError(''); swapFlower('landing'); }}
               >
                 Back
               </button>

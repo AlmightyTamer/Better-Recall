@@ -1,10 +1,20 @@
 import type { CSSProperties } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { useAppStore } from '../store/appStore';
+import { db, type AcseScore } from '../db/db';
 import CognitiveAurora from './CognitiveAurora';
 import StudioIcon, { type IconName } from './StudioIcon';
 
 export default function ACSEDashboard() {
-  const { acseScore, deductAcse, setAcseScore } = useAppStore();
+  const { acseScore, user } = useAppStore();
+
+  const recentScores = useLiveQuery<AcseScore[]>(
+    () =>
+      user?.id
+        ? db.acseScores.where('userId').equals(user.id).reverse().limit(5).toArray()
+        : [],
+    [user?.id]
+  ) ?? [];
 
   const moodIcon: IconName =
     acseScore >= 75 ? 'stable' :
@@ -18,11 +28,10 @@ export default function ACSEDashboard() {
         ? { label: 'Moderate', desc: 'Take things slowly. Clara is here if you need reassurance.' }
         : { label: 'Needs support', desc: 'Comfort mode may open to help you feel grounded.' };
 
-  const triggers = [
-    { label: 'Repeated question', points: 15 },
-    { label: 'Rapid navigation', points: 10 },
-    { label: 'Medication re-attempt', points: 20 },
-    { label: 'Inactivity (20 min)', points: 10 },
+  const insights = [
+    { icon: 'clara' as IconName, text: 'Talking to Clara when confused helps rebuild context.' },
+    { icon: 'meds' as IconName, text: 'Taking medications on schedule keeps your score steady.' },
+    { icon: 'heart' as IconName, text: 'Breathing exercises in Comfort Mode can restore calm.' },
   ];
 
   return (
@@ -52,40 +61,38 @@ export default function ACSEDashboard() {
       </div>
 
       <div className="card acse-dashboard__tips">
-        <p className="studio-section-title">Gentle reminders</p>
+        <p className="studio-section-title">What helps your stability</p>
         <ul className="acse-dashboard__tip-list">
-          <li>Take medications when prompted</li>
-          <li>Ask Clara if you feel unsure</li>
-          <li>Pause and breathe if things feel overwhelming</li>
+          {insights.map((item) => (
+            <li key={item.text} className="acse-insight">
+              <StudioIcon name={item.icon} size={18} />
+              <span>{item.text}</span>
+            </li>
+          ))}
         </ul>
       </div>
 
-      <div className="card acse-dashboard__demo">
-        <p className="studio-section-title">Demo signals</p>
-        <div className="acse-dashboard__triggers">
-          {triggers.map((t) => (
-            <button
-              key={t.label}
-              type="button"
-              className="acse-trigger tap-feedback"
-              onClick={() => deductAcse(t.points, t.label)}
-            >
-              <span>{t.label}</span>
-              <span className="acse-trigger__points">−{t.points}</span>
-            </button>
+      {recentScores.length > 0 && (
+        <div className="card acse-dashboard__history">
+          <p className="studio-section-title">Recent activity</p>
+          {recentScores.map((s, i) => (
+            <div key={i} className="acse-history-row">
+              <span className={`acse-history-row__score acse-history-row__score--${s.score >= 75 ? 'high' : s.score >= 50 ? 'mid' : 'low'}`}>
+                {s.score}
+              </span>
+              <div>
+                <p className="acse-history-row__reason">{s.reason || 'Score update'}</p>
+                <p className="studio-text-muted" style={{ fontSize: 13, margin: 0 }}>
+                  {new Date(s.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              </div>
+            </div>
           ))}
-          <button
-            type="button"
-            className="studio-btn studio-btn--primary tap-feedback"
-            onClick={() => setAcseScore(100)}
-          >
-            Reset to 100
-          </button>
         </div>
-      </div>
+      )}
 
       <p className="acse-dashboard__footnote">
-        Comfort mode opens automatically below 50.
+        ACSE measures behavioral patterns — not a medical diagnosis. Comfort mode opens below 50.
       </p>
     </div>
   );

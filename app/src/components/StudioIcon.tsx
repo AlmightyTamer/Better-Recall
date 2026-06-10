@@ -27,7 +27,14 @@ export type IconName =
   | 'refresh'
   | 'sun'
   | 'moon'
-  | 'heart';
+  | 'heart'
+  | 'shield'
+  | 'sos'
+  | 'location'
+  | 'routine'
+  | 'music'
+  | 'export'
+  | 'settings';
 
 interface StudioIconProps {
   name: IconName;
@@ -199,6 +206,49 @@ const PATHS: Record<IconName, JSX.Element> = {
   ),
   heart: (
     <path d="M12 20.5l-1.2-1.1C6.5 15.4 4 13.1 4 10a4 4 0 017.2-2.2A4 4 0 0112 8.5a4 4 0 014.8-0.7A4 4 0 0120 10c0 3.1-2.5 5.4-6.8 9.4L12 20.5z" />
+  ),
+  shield: (
+    <>
+      <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" />
+      <path d="M9 12l2 2 4-4" />
+    </>
+  ),
+  sos: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 8v1M12 11v5" strokeWidth={2} />
+    </>
+  ),
+  location: (
+    <>
+      <path d="M12 21s6-5.2 6-10a6 6 0 10-12 0c0 4.8 6 10 6 10z" />
+      <circle cx="12" cy="11" r="2" />
+    </>
+  ),
+  routine: (
+    <>
+      <path d="M8 6h13M8 12h13M8 18h13" />
+      <path d="M4 6h.01M4 12h.01M4 18h.01" strokeWidth={3} />
+    </>
+  ),
+  music: (
+    <>
+      <circle cx="8" cy="18" r="3" />
+      <circle cx="18" cy="16" r="3" />
+      <path d="M11 18V6l10-2v12" />
+    </>
+  ),
+  export: (
+    <>
+      <path d="M12 4v10M8 10l4 4 4-4" />
+      <path d="M5 18h14" />
+    </>
+  ),
+  settings: (
+    <>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+    </>
   ),
 };
 

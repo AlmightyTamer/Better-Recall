@@ -10,6 +10,8 @@ import VitalsDashboard from '../components/VitalsDashboard';
 import { addMedication, removeMedication, replaceMedication } from '../lib/medications';
 import type { Medication } from '../db/db';
 import StormRadar from '../components/StormRadar';
+import CareJournal from '../components/CareJournal';
+import DataExportPanel from '../components/DataExportPanel';
 import { logout } from '../lib/session';
 import { sendPresencePulse } from '../lib/presence';
 import { useAppStore } from '../store/appStore';
@@ -170,6 +172,8 @@ function SupervisorHomeTab({ user }: { user: User | null }) {
       )}
 
       <StormRadar userId={user?.id} />
+
+      <CareJournal />
 
       <div className="card quick-event-card">
         <p className="studio-section-title">Add event now</p>
@@ -650,10 +654,13 @@ function ProfileTab() {
     name: user?.name ?? '',
     age: user?.age ?? 0,
     city: user?.city ?? '',
+    homeAddress: user?.homeAddress ?? '',
     caregiverName: user?.caregiverName ?? '',
     caregiverRelationship: user?.caregiverRelationship ?? '',
     caregiverPhone: user?.caregiverPhone ?? '',
     familyPhotoUrl: user?.familyPhotoUrl ?? '',
+    emergencyNote: user?.emergencyNote ?? '',
+    calmingMusicUrl: user?.calmingMusicUrl ?? '',
   });
 
   const handleSave = async () => {
@@ -704,8 +711,13 @@ function ProfileTab() {
         <Field label="Caregiver Name" value={form.caregiverName} onChange={(v) => setForm((p) => ({ ...p, caregiverName: v }))} />
         <Field label="Relationship" value={form.caregiverRelationship} onChange={(v) => setForm((p) => ({ ...p, caregiverRelationship: v }))} />
         <Field label="Caregiver Phone" value={form.caregiverPhone} onChange={(v) => setForm((p) => ({ ...p, caregiverPhone: v }))} />
+        <Field label="Home Address" value={form.homeAddress} onChange={(v) => setForm((p) => ({ ...p, homeAddress: v }))} />
         <Field label="Family Photo URL" value={form.familyPhotoUrl} onChange={(v) => setForm((p) => ({ ...p, familyPhotoUrl: v }))} />
+        <Field label="Emergency Note" value={form.emergencyNote} onChange={(v) => setForm((p) => ({ ...p, emergencyNote: v }))} />
+        <Field label="Calming Music URL" value={form.calmingMusicUrl} onChange={(v) => setForm((p) => ({ ...p, calmingMusicUrl: v }))} />
       </div>
+
+      <DataExportPanel />
 
       {user?.medications && (
         <div className="card" style={{ padding: 20 }}>

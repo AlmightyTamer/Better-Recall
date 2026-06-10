@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import BreathingCircle from '../components/BreathingCircle';
+import CalmingMusicPlayer from '../components/CalmingMusicPlayer';
 import FlowerStage from '../components/FlowerStage';
 import StudioIcon from '../components/StudioIcon';
 import { getFlowers } from '../flowers';
@@ -134,6 +135,7 @@ export default function ComfortMode() {
             <p className="studio-text-bright" style={{ fontSize: 20, marginBottom: 8 }}>
               Breathe with me, {user?.name?.split(' ')[0]}
             </p>
+            <CalmingMusicPlayer url={user?.calmingMusicUrl} />
             <BreathingCircle cycles={3} onComplete={handleBreathingComplete} />
             <button
               className="studio-btn studio-btn--text tap-feedback"

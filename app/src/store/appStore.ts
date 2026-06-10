@@ -10,7 +10,7 @@ interface SupervisorAlert {
   id: string;
   message: string;
   timestamp: string;
-  type: 'comfort_mode' | 'medication_unconfirmed' | 'general';
+  type: 'comfort_mode' | 'medication_unconfirmed' | 'general' | 'sos' | 'presence';
 }
 
 interface AppState {

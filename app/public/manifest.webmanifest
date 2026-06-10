@@ -1,7 +1,7 @@
 {
-  "name": "Recall — Cognitive Care",
+  "name": "Recall — Dementia Care Companion",
   "short_name": "Recall",
-  "description": "AI memory threads, Clara voice companion, medication vision, and cognitive storm radar.",
+  "description": "Orientation, medication safety, emergency SOS, memory threads, and caregiver monitoring for dementia care.",
   "start_url": "/recall/",
   "scope": "/recall/",
   "display": "standalone",
