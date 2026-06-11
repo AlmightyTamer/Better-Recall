@@ -47,7 +47,7 @@ export default function ComfortMode() {
       try {
         const grounding = await generateGrounding(user.name, user.city, ctx);
         setGroundingText(grounding);
-        await speak(grounding);
+        await speak(grounding, { clara: true });
 
         const narrative = await generateNarrative(user.name, ctx.recentEvents);
         setNarrativeText(narrative);
@@ -67,13 +67,13 @@ export default function ComfortMode() {
   }, [user]);
 
   const handleBreathingComplete = async () => {
-    await speak(narrativeText);
+    await speak(narrativeText, { clara: true });
     setPhase('narrative');
   };
 
   const skipToNarrative = async () => {
     stopSpeaking();
-    await speak(narrativeText);
+    await speak(narrativeText, { clara: true });
     setPhase('narrative');
   };
 
@@ -119,7 +119,7 @@ export default function ComfortMode() {
                 <div className="comfort-mode__actions">
                   <button
                     className="studio-btn studio-btn--primary tap-feedback"
-                    onClick={() => { void speak("Let's do some breathing together."); setPhase('breathing'); }}
+                    onClick={() => { void speak("Let's do some breathing together.", { clara: true }); setPhase('breathing'); }}
                   >
                     Let's breathe together
                   </button>

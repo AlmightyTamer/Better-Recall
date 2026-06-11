@@ -2,11 +2,17 @@ import { useCallback, useRef, useState } from 'react';
 
 type SpeechRecognitionResult = {
   isFinal: boolean;
+  length: number;
   [index: number]: { transcript: string; confidence?: number };
 };
 
+type SpeechRecognitionResultList = {
+  length: number;
+  [index: number]: SpeechRecognitionResult;
+};
+
 type SpeechRecognitionEvent = {
-  results: SpeechRecognitionResult[];
+  results: SpeechRecognitionResultList;
   resultIndex: number;
 };
 
@@ -32,17 +38,21 @@ declare global {
   }
 }
 
-const LISTEN_MAX_MS = 12_000;
-const SILENCE_AFTER_SPEECH_MS = 1_800;
+const LISTEN_MAX_MS = 22_000;
+const SILENCE_AFTER_SPEECH_MS = 3_200;
 
-function collectTranscript(results: SpeechRecognitionResult[]): string {
-  let text = '';
+/** Pull the best transcript from the results list — finals plus any trailing interim */
+function extractTranscript(results: SpeechRecognitionResultList): string {
+  let finals = '';
+  let interim = '';
   for (let i = 0; i < results.length; i++) {
-    if (results[i].isFinal) {
-      text += results[i][0].transcript;
-    }
+    const seg = results[i][0]?.transcript ?? '';
+    if (results[i].isFinal) finals += seg;
+    else interim += seg;
   }
-  return text.trim();
+  const combined = (finals + interim).trim();
+  if (combined) return combined;
+  return finals.trim();
 }
 
 export function useVoice() {
@@ -58,7 +68,12 @@ export function useVoice() {
 
   const stopListening = useCallback(() => {
     clearTimers();
-    recognitionRef.current?.stop();
+    try {
+      recognitionRef.current?.abort();
+    } catch {
+      recognitionRef.current?.stop();
+    }
+    recognitionRef.current = null;
     setIsListening(false);
   }, [clearTimers]);
 
@@ -66,30 +81,36 @@ export function useVoice() {
     return new Promise((resolve, reject) => {
       const SR = window.SpeechRecognition ?? window.webkitSpeechRecognition;
       if (!SR) {
-        reject(new Error('Speech recognition not supported'));
+        reject(new Error('Speech recognition not supported in this browser'));
         return;
       }
 
-      recognitionRef.current?.abort();
+      try {
+        recognitionRef.current?.abort();
+      } catch {
+        recognitionRef.current?.stop();
+      }
       clearTimers();
 
       const recognition = new SR();
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = 'en-US';
-      recognition.maxAlternatives = 1;
+      recognition.maxAlternatives = 3;
       recognitionRef.current = recognition;
 
       let settled = false;
-      let finalText = '';
-      let silenceTimer: ReturnType<typeof setTimeout> | null = null;
+      let bestText = '';
       let heardSpeech = false;
+      let silenceTimer: ReturnType<typeof setTimeout> | null = null;
+      let lastResults: SpeechRecognitionResultList | null = null;
 
       const finish = (text: string) => {
         if (settled) return;
         settled = true;
         clearTimers();
         if (silenceTimer) clearTimeout(silenceTimer);
+        recognitionRef.current = null;
         setIsListening(false);
         setTranscript(text);
         resolve(text);
@@ -98,44 +119,50 @@ export function useVoice() {
       const scheduleSilenceStop = () => {
         if (silenceTimer) clearTimeout(silenceTimer);
         silenceTimer = setTimeout(() => {
-          recognition.stop();
+          try {
+            recognition.stop();
+          } catch {
+            finish(bestText);
+          }
         }, SILENCE_AFTER_SPEECH_MS);
       };
 
       recognition.onresult = (e: SpeechRecognitionEvent) => {
-        const finals = collectTranscript(e.results);
-        if (finals) {
-          finalText = finals;
+        lastResults = e.results;
+        const text = extractTranscript(e.results);
+        if (text) {
+          bestText = text;
           heardSpeech = true;
-        }
-
-        let interim = '';
-        for (let i = e.resultIndex; i < e.results.length; i++) {
-          if (!e.results[i].isFinal) {
-            interim += e.results[i][0].transcript;
-          }
-        }
-
-        setTranscript((finalText + interim).trim());
-
-        if (heardSpeech) {
+          setTranscript(text);
           scheduleSilenceStop();
         }
       };
 
       recognition.onspeechstart = () => {
         heardSpeech = true;
+        if (silenceTimer) clearTimeout(silenceTimer);
       };
 
       recognition.onspeechend = () => {
-        scheduleSilenceStop();
+        if (heardSpeech) scheduleSilenceStop();
       };
 
       recognition.onerror = (e: { error: string }) => {
         if (settled) return;
-        // Soft errors — resolve with whatever we captured
-        if (e.error === 'no-speech' || e.error === 'aborted') {
-          recognition.stop();
+        if (e.error === 'aborted') return;
+        if (e.error === 'no-speech') {
+          try {
+            recognition.stop();
+          } catch {
+            finish(bestText);
+          }
+          return;
+        }
+        if (e.error === 'network') {
+          settled = true;
+          clearTimers();
+          setIsListening(false);
+          reject(new Error('network'));
           return;
         }
         settled = true;
@@ -146,23 +173,32 @@ export function useVoice() {
 
       recognition.onend = () => {
         if (settled) return;
-        finish(finalText);
+        if (lastResults) {
+          const final = extractTranscript(lastResults);
+          if (final.length > bestText.length) bestText = final;
+        }
+        finish(bestText);
       };
 
       timersRef.current.push(
         setTimeout(() => {
-          recognition.stop();
+          try {
+            recognition.stop();
+          } catch {
+            finish(bestText);
+          }
         }, LISTEN_MAX_MS)
       );
 
       setIsListening(true);
       setTranscript('');
+
       try {
         recognition.start();
-      } catch {
+      } catch (err) {
         settled = true;
         setIsListening(false);
-        reject(new Error('Could not start microphone'));
+        reject(err instanceof Error ? err : new Error('Could not start microphone'));
       }
     });
   }, [clearTimers]);

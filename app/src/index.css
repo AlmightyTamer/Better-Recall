@@ -2350,6 +2350,25 @@ html, body, #root {
   background: rgba(0, 0, 0, 0.2);
   border-color: rgba(120, 170, 220, 0.15);
 }
+.clara-room__heard {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 15px;
+  line-height: 1.45;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: var(--studio-text);
+}
+.clara-room__heard-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #059669;
+  margin-right: 6px;
+}
+
 .clara-room__line {
   margin: 0;
   font-size: 18px;

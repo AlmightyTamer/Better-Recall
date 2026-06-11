@@ -143,7 +143,7 @@ async function fetchElevenLabsAudio(text: string, modelId: string, options?: Spe
   const warm = options?.warm ?? false;
   const voiceId = clara ? CLARA_VOICE_ID : VOICE_ID;
   const voice_settings = clara
-    ? { stability: 0.38, similarity_boost: 0.92, style: 0.68, use_speaker_boost: true }
+    ? { stability: 0.34, similarity_boost: 0.93, style: 0.74, use_speaker_boost: true }
     : warm
       ? { stability: 0.42, similarity_boost: 0.88, style: 0.55, use_speaker_boost: true }
       : { stability: 0.55, similarity_boost: 0.8, style: 0.25, use_speaker_boost: true };
@@ -258,8 +258,8 @@ async function speakBrowser(text: string, gen: number, options?: SpeakOptions): 
     }
 
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = options?.clara ? 0.76 : options?.warm ? 0.82 : 0.9;
-    utterance.pitch = options?.clara ? 1.06 : options?.warm ? 1.12 : 1.05;
+    utterance.rate = options?.clara ? 0.74 : options?.warm ? 0.82 : 0.9;
+    utterance.pitch = options?.clara ? 1.04 : options?.warm ? 1.12 : 1.05;
     utterance.volume = 1;
     utterance.lang = 'en-US';
 

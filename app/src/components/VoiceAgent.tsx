@@ -17,6 +17,8 @@ const SUGGESTIONS = [
   { label: 'I feel lonely', icon: 'heart' as const },
 ];
 
+const POST_SPEAK_PAUSE_MS = 1_400;
+
 export default function VoiceAgent() {
   const user = useAppStore((s) => s.user);
   const triggerMemoryRecap = useAppStore((s) => s.triggerMemoryRecap);
@@ -24,7 +26,7 @@ export default function VoiceAgent() {
   const [inSession, setInSession] = useState(false);
   const [claraLine, setClaraLine] = useState('');
   const [error, setError] = useState('');
-  const { startListening, stopListening } = useVoice();
+  const { isListening, transcript, startListening, stopListening } = useVoice();
   const { checkRepeatQuestion, recordActivity } = useACSE();
   const historyRef = useRef<{ role: 'user' | 'assistant'; content: string }[]>([]);
   const sessionActiveRef = useRef(false);
@@ -55,7 +57,7 @@ export default function VoiceAgent() {
     const trimmed = text.trim();
     if (!trimmed) {
       if (sessionActiveRef.current) {
-        setClaraLine("Take your time — I'm listening whenever you're ready.");
+        setClaraLine("I didn't catch that — take your time and try again.");
       }
       return;
     }
@@ -65,6 +67,7 @@ export default function VoiceAgent() {
 
     if (detectLoneliness(trimmed)) {
       stopSpeaking();
+      stopListening();
       sessionActiveRef.current = false;
       setInSession(false);
       setState('idle');
@@ -97,6 +100,7 @@ export default function VoiceAgent() {
 
     if (!sessionActiveRef.current) return;
 
+    stopListening();
     setClaraLine(response);
     setState('speaking');
 
@@ -112,23 +116,25 @@ export default function VoiceAgent() {
     }
 
     if (sessionActiveRef.current) {
-      await new Promise((r) => setTimeout(r, 600));
+      await new Promise((r) => setTimeout(r, POST_SPEAK_PAUSE_MS));
     }
 
     if (!sessionActiveRef.current) {
       setState('idle');
     }
-  }, [checkRepeatQuestion, recordActivity, triggerMemoryRecap, user]);
+  }, [checkRepeatQuestion, recordActivity, triggerMemoryRecap, user, stopListening]);
 
   const runListeningTurn = useCallback(async () => {
     while (sessionActiveRef.current) {
       try {
+        stopSpeaking();
+        await new Promise((r) => setTimeout(r, 300));
         setState('listening');
-        setClaraLine("I'm listening…");
+        setClaraLine("I'm listening… speak naturally, then pause when you're done.");
         setError('');
-        const transcript = await startListening();
+        const heard = await startListening();
         if (!sessionActiveRef.current) break;
-        await processUtterance(transcript);
+        await processUtterance(heard);
       } catch (err) {
         console.error(err);
         if (!sessionActiveRef.current) break;
@@ -142,7 +148,7 @@ export default function VoiceAgent() {
           break;
         }
         setClaraLine("I didn't quite catch that — go ahead when you're ready.");
-        await new Promise((r) => setTimeout(r, 500));
+        await new Promise((r) => setTimeout(r, 800));
       }
     }
   }, [startListening, processUtterance]);
@@ -155,6 +161,7 @@ export default function VoiceAgent() {
       return;
     }
 
+    stopSpeaking();
     sessionActiveRef.current = true;
     setInSession(true);
     setError('');
@@ -163,16 +170,22 @@ export default function VoiceAgent() {
 
   const handleChip = (q: string) => {
     unlockAudioPlayback();
+    stopSpeaking();
+    stopListening();
     sessionActiveRef.current = true;
     setInSession(true);
     setError('');
-    void processUtterance(q);
+    void processUtterance(q).then(() => {
+      if (sessionActiveRef.current) void runListeningTurn();
+    });
   };
 
   const statusLabel =
     state === 'listening' ? 'Listening' :
     state === 'thinking' ? 'Thinking' :
     state === 'speaking' ? 'Speaking' : inSession ? 'In conversation' : 'Ready';
+
+  const showLiveTranscript = state === 'listening' && transcript.length > 0;
 
   return (
     <div className="clara-room">
@@ -219,7 +232,14 @@ export default function VoiceAgent() {
           {error ? (
             <p className="clara-room__error">{error}</p>
           ) : (
-            <p className="clara-room__line">{claraLine}</p>
+            <>
+              <p className="clara-room__line">{claraLine}</p>
+              {showLiveTranscript && (
+                <p className="clara-room__heard">
+                  <span className="clara-room__heard-label">Hearing:</span> {transcript}
+                </p>
+              )}
+            </>
           )}
         </div>
 
@@ -235,7 +255,7 @@ export default function VoiceAgent() {
           >
             <span className="clara-room__mic-ring" />
             <span className="clara-room__mic-ring clara-room__mic-ring--2" />
-            <StudioIcon name="clara" size={32} />
+            <StudioIcon name={isListening ? 'mic' : 'clara'} size={32} />
           </button>
           <p className="clara-room__mic-hint">
             {inSession
