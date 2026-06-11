@@ -1,7 +1,7 @@
 /**
- * Cloudflare Worker proxy — keeps API keys off the client.
- * Deploy: npm run deploy (in proxy/)
- * Secrets: GROQ_API_KEY, ELEVENLABS_API_KEY, GOOGLE_VISION_KEY
+ * Recall API — Cloudflare Worker
+ * Primary LLM: Workers AI (Llama, no external API key)
+ * Fallbacks: Groq / ElevenLabs / Google Vision when secrets are set
  */
 
 const CORS = {
@@ -9,6 +9,11 @@ const CORS = {
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Accept',
 };
+
+const CF_CHAT_MODELS = [
+  '@cf/meta/llama-3.1-8b-instruct',
+  '@cf/meta/llama-3-8b-instruct',
+];
 
 export default {
   async fetch(request, env) {
@@ -22,6 +27,7 @@ export default {
       return json({
         ok: true,
         service: 'recall-api',
+        llm: env.AI ? 'workers-ai' : 'groq-only',
         routes: ['/api/groq/chat', '/api/groq/vision', '/api/elevenlabs/tts', '/api/vision/annotate'],
       });
     }
@@ -39,75 +45,19 @@ export default {
 
     try {
       if (url.pathname === '/api/groq/chat') {
-        requireSecret(env.GROQ_API_KEY, 'GROQ_API_KEY');
-        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${env.GROQ_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        if (!res.ok) return json({ error: data }, res.status);
-        return json({
-          content: data.choices?.[0]?.message?.content?.trim() ?? '',
-        });
+        return await handleChat(body, env);
       }
 
       if (url.pathname === '/api/groq/vision') {
-        requireSecret(env.GROQ_API_KEY, 'GROQ_API_KEY');
-        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${env.GROQ_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        if (!res.ok) return json({ error: data }, res.status);
-        return json({ content: data.choices?.[0]?.message?.content ?? '{}' });
+        return await handleGroqVision(body, env);
       }
 
       if (url.pathname === '/api/elevenlabs/tts') {
-        requireSecret(env.ELEVENLABS_API_KEY, 'ELEVENLABS_API_KEY');
-        const voiceId = body.voiceId || 'EXAVITQu4vr4xnSDxMaL';
-        const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-          method: 'POST',
-          headers: {
-            'xi-api-key': env.ELEVENLABS_API_KEY,
-            'Content-Type': 'application/json',
-            Accept: 'audio/mpeg',
-          },
-          body: JSON.stringify({
-            text: body.text,
-            model_id: body.model_id || 'eleven_turbo_v2_5',
-            voice_settings: body.voice_settings,
-          }),
-        });
-        if (!res.ok) {
-          const detail = await res.text();
-          return new Response(detail, { status: res.status, headers: CORS });
-        }
-        return new Response(await res.arrayBuffer(), {
-          headers: { ...CORS, 'Content-Type': 'audio/mpeg' },
-        });
+        return await handleTts(body, env);
       }
 
       if (url.pathname === '/api/vision/annotate') {
-        requireSecret(env.GOOGLE_VISION_KEY, 'GOOGLE_VISION_KEY');
-        const res = await fetch(
-          `https://vision.googleapis.com/v1/images:annotate?key=${env.GOOGLE_VISION_KEY}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body.googleRequest),
-          }
-        );
-        const data = await res.json();
-        if (!res.ok) return json({ error: data }, res.status);
-        return json(data);
+        return await handleVisionAnnotate(body, env);
       }
 
       return json({ error: 'Not found' }, 404);
@@ -116,6 +66,140 @@ export default {
     }
   },
 };
+
+/** Clara / Groq-compatible chat — Workers AI first, Groq fallback */
+async function handleChat(body, env) {
+  const messages = body.messages;
+  if (!Array.isArray(messages) || !messages.length) {
+    return json({ error: 'messages array required' }, 400);
+  }
+
+  if (env.AI) {
+    let lastErr;
+    for (const model of CF_CHAT_MODELS) {
+      try {
+        const result = await env.AI.run(model, {
+          messages,
+          max_tokens: body.max_tokens ?? 320,
+          temperature: body.temperature ?? 0.78,
+        });
+        const content = extractAIText(result);
+        if (content) return json({ content, provider: 'workers-ai', model });
+      } catch (err) {
+        lastErr = err;
+        console.error(`Workers AI ${model} failed:`, err);
+      }
+    }
+    if (lastErr) console.error('All Workers AI models failed, trying Groq fallback');
+  }
+
+  requireSecret(env.GROQ_API_KEY, 'GROQ_API_KEY');
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.GROQ_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) return json({ error: data }, res.status);
+  return json({
+    content: data.choices?.[0]?.message?.content?.trim() ?? '',
+    provider: 'groq',
+  });
+}
+
+async function handleGroqVision(body, env) {
+  requireSecret(env.GROQ_API_KEY, 'GROQ_API_KEY');
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.GROQ_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) return json({ error: data }, res.status);
+  return json({ content: data.choices?.[0]?.message?.content ?? '{}' });
+}
+
+async function handleTts(body, env) {
+  // Workers AI MeloTTS when no ElevenLabs key
+  if (env.AI && body.text?.trim()) {
+    try {
+      const result = await env.AI.run('@cf/myshell-ai/melotts', {
+        prompt: body.text.trim(),
+        lang: 'en',
+      });
+      const audio = result?.audio;
+      if (audio) {
+        const bytes = typeof audio === 'string' ? base64ToBytes(audio) : audio;
+        if (bytes?.byteLength) {
+          return new Response(bytes, {
+            headers: { ...CORS, 'Content-Type': 'audio/mpeg' },
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Workers AI TTS failed:', err);
+    }
+  }
+
+  requireSecret(env.ELEVENLABS_API_KEY, 'ELEVENLABS_API_KEY');
+  const voiceId = body.voiceId || 'EXAVITQu4vr4xnSDxMaL';
+  const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+    method: 'POST',
+    headers: {
+      'xi-api-key': env.ELEVENLABS_API_KEY,
+      'Content-Type': 'application/json',
+      Accept: 'audio/mpeg',
+    },
+    body: JSON.stringify({
+      text: body.text,
+      model_id: body.model_id || 'eleven_turbo_v2_5',
+      voice_settings: body.voice_settings,
+    }),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    return new Response(detail, { status: res.status, headers: CORS });
+  }
+  return new Response(await res.arrayBuffer(), {
+    headers: { ...CORS, 'Content-Type': 'audio/mpeg' },
+  });
+}
+
+async function handleVisionAnnotate(body, env) {
+  requireSecret(env.GOOGLE_VISION_KEY, 'GOOGLE_VISION_KEY');
+  const res = await fetch(
+    `https://vision.googleapis.com/v1/images:annotate?key=${env.GOOGLE_VISION_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body.googleRequest),
+    }
+  );
+  const data = await res.json();
+  if (!res.ok) return json({ error: data }, res.status);
+  return json(data);
+}
+
+function extractAIText(result) {
+  if (!result) return '';
+  if (typeof result === 'string') return result.trim();
+  if (result.response) return String(result.response).trim();
+  if (result.text) return String(result.text).trim();
+  return '';
+}
+
+function base64ToBytes(b64) {
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes.buffer;
+}
 
 function requireSecret(value, name) {
   if (!value?.trim()) {

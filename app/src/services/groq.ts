@@ -7,7 +7,8 @@ import {
 import { localClaraReply } from '../lib/claraLocal';
 
 const GROQ_BASE = 'https://api.groq.com/openai/v1';
-const MODEL_PRIMARY = 'llama-3.3-70b-versatile';
+/** Client model hint — worker uses Cloudflare Workers AI (Llama 3.1) server-side */
+const MODEL_PRIMARY = 'llama-3.1-8b-instant';
 const MODEL_FALLBACK = 'llama-3.1-8b-instant';
 
 interface Message {
