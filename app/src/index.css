@@ -8,79 +8,87 @@
   --sab: env(safe-area-inset-bottom, 0px);
   --sal: env(safe-area-inset-left, 0px);
   --sar: env(safe-area-inset-right, 0px);
-  /* Forget-me-not palette */
-  --fm-blue: #4A90D9;
-  --fm-blue-light: #8ECDF5;
-  --fm-blue-deep: #1A4A7A;
-  --fm-blue-soft: #D6EBFA;
-  --fm-yellow: #FFD44D;
-  --fm-yellow-deep: #F5A623;
-  --fm-green: #3D8B6E;
-  --fm-green-soft: #D4F0E4;
-  --recall-coral: var(--fm-blue);
-  --recall-coral-soft: var(--fm-blue-soft);
-  --recall-sage: var(--fm-green);
-  --recall-sage-soft: var(--fm-green-soft);
-  --recall-lavender: #6B8FD4;
-  --recall-lavender-soft: #E4EDFC;
-  --recall-gold: var(--fm-yellow);
-  --studio-bg: #EBF5FF;
-  --studio-bg-deep: #D0E8FA;
-  --studio-surface: rgba(255, 255, 255, 0.96);
-  --studio-surface-soft: rgba(74, 144, 217, 0.08);
-  --studio-text: #1A3352;
-  --studio-text-muted: rgba(26, 51, 82, 0.68);
-  --studio-text-bright: #0F2847;
-  --studio-accent: var(--fm-blue-deep);
-  --studio-accent-soft: rgba(74, 144, 217, 0.14);
-  --studio-border: rgba(74, 144, 217, 0.22);
-  --studio-shadow: rgba(26, 74, 122, 0.14);
-  --studio-scrim-rgb: 235, 245, 255;
-  --studio-scrim-base: 0.28;
-  --studio-header-fade: rgba(235, 245, 255, 0.97);
-  --studio-glow-rgb: 142, 205, 245;
-  --studio-smoke-rgb: 74, 144, 217;
-  --studio-vignette-inner: rgba(214, 235, 250, 0.15);
-  --studio-vignette-outer: rgba(74, 144, 217, 0.22);
-  --studio-skeleton-a: rgba(74, 144, 217, 0.08);
-  --studio-skeleton-b: rgba(74, 144, 217, 0.14);
-  --studio-mic-pulse: rgba(74, 144, 217, 0.28);
-  --studio-card-bg: rgba(255, 255, 255, 0.97);
-  --studio-card-border: rgba(74, 144, 217, 0.28);
-  --studio-card-inset: rgba(255, 255, 255, 0.9);
-  --studio-chrome-bg: rgba(235, 245, 255, 0.96);
-  --studio-tabbar-bg: rgba(255, 255, 255, 0.98);
-  --studio-input-bg: rgba(255, 255, 255, 0.99);
-  --studio-input-placeholder: rgba(26, 51, 82, 0.42);
-  --studio-bubble-user-bg: rgba(74, 144, 217, 0.1);
-  --studio-bubble-user-border: rgba(74, 144, 217, 0.22);
-  --studio-bubble-assistant-bg: rgba(255, 255, 255, 0.98);
-  --studio-btn-hover-bg: rgba(74, 144, 217, 0.1);
-  --studio-btn-hover-border: rgba(74, 144, 217, 0.35);
-  --studio-btn-hover-shadow: rgba(74, 144, 217, 0.18);
-  --studio-btn-primary-bg: var(--fm-blue);
-  --studio-btn-primary-border: transparent;
-  --studio-btn-ghost-bg: rgba(255, 255, 255, 0.82);
-  --studio-tab-active-bg: rgba(74, 144, 217, 0.14);
-  --studio-tab-active-border: rgba(74, 144, 217, 0.35);
-  --studio-chip-active-bg: rgba(74, 144, 217, 0.18);
-  --studio-chip-active-border: rgba(74, 144, 217, 0.4);
-  --studio-focus-ring: rgba(74, 144, 217, 0.55);
-  --studio-accent-line: linear-gradient(90deg, var(--fm-blue), var(--fm-yellow));
-  --studio-progress-track: rgba(74, 144, 217, 0.15);
-  --studio-progress-fill: linear-gradient(90deg, var(--fm-blue), var(--fm-blue-light));
-  --studio-content-gradient-a: 0.08;
-  --studio-content-gradient-b: 0.14;
-  --studio-content-gradient-c: 0.22;
-  --studio-score-ring-active: var(--fm-blue);
-  --studio-score-ring-track: rgba(74, 144, 217, 0.15);
-  --studio-score-ring-shadow: rgba(74, 144, 217, 0.2);
-  --studio-highlight-border: rgba(74, 144, 217, 0.3);
-  --studio-icon-surface-border: rgba(74, 144, 217, 0.2);
-  --recall-petal: #4A90D9;
+
+  /* ── Dashboard palette ── */
+  --apple-font: -apple-system, 'Inter', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  --dash-bg: #EBEDF5;
+  --dash-bg-deep: #E2E4EF;
+  --dash-surface: #FFFFFF;
+  --dash-dark: #252836;
+  --dash-dark-surface: #2F3142;
+  --dash-text: #1A1A2E;
+  --dash-text-muted: #6B7280;
+  --dash-text-bright: #0F0F1A;
+  --dash-accent: #F59E0B;
+  --dash-accent-soft: rgba(245,158,11,0.12);
+  --dash-teal: #4ECDC4;
+  --dash-teal-soft: rgba(78,205,196,0.12);
+  --dash-coral: #F87171;
+  --dash-coral-soft: rgba(248,113,113,0.12);
+  --dash-green: #10B981;
+  --dash-green-soft: rgba(16,185,129,0.12);
+  --dash-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  --dash-shadow-sm: 0 1px 6px rgba(0,0,0,0.06);
+
+  /* ── Token aliases (used by existing components) ── */
+  --recall-coral: #F59E0B;
+  --recall-sage: #4ECDC4;
+  --recall-lavender: #818CF8;
+  --recall-gold: #F59E0B;
+  --studio-bg: #EBEDF5;
+  --studio-bg-deep: #E2E4EF;
+  --studio-surface: rgba(255,255,255,0.96);
+  --studio-surface-soft: rgba(255,255,255,0.6);
+  --studio-text: #1A1A2E;
+  --studio-text-muted: #6B7280;
+  --studio-text-bright: #0F0F1A;
+  --studio-accent: #F59E0B;
+  --studio-accent-soft: rgba(245,158,11,0.10);
+  --studio-border: rgba(0,0,0,0.07);
+  --studio-shadow: rgba(0,0,0,0.07);
+  --studio-scrim-rgb: 235,237,245;
+  --studio-scrim-base: 0.15;
+  --studio-header-fade: rgba(235,237,245,0.95);
+  --studio-glow-rgb: 245,158,11;
+  --studio-smoke-rgb: 120,125,140;
+  --studio-vignette-inner: rgba(235,237,245,0.0);
+  --studio-vignette-outer: rgba(200,205,220,0.2);
+  --studio-skeleton-a: rgba(0,0,0,0.04);
+  --studio-skeleton-b: rgba(0,0,0,0.08);
+  --studio-mic-pulse: rgba(245,158,11,0.18);
+  --studio-card-bg: #FFFFFF;
+  --studio-card-border: rgba(0,0,0,0.06);
+  --studio-card-inset: rgba(255,255,255,0.7);
+  --studio-chrome-bg: rgba(235,237,245,0.95);
+  --studio-tabbar-bg: rgba(255,255,255,0.98);
+  --studio-input-bg: rgba(255,255,255,0.99);
+  --studio-input-placeholder: #9CA3AF;
+  --studio-bubble-user-bg: rgba(245,158,11,0.08);
+  --studio-bubble-user-border: rgba(245,158,11,0.15);
+  --studio-bubble-assistant-bg: #FFFFFF;
+  --studio-btn-hover-bg: rgba(245,158,11,0.08);
+  --studio-btn-hover-border: rgba(245,158,11,0.18);
+  --studio-btn-hover-shadow: rgba(245,158,11,0.06);
+  --studio-btn-primary-bg: rgba(245,158,11,0.10);
+  --studio-btn-primary-border: rgba(245,158,11,0.22);
+  --studio-btn-ghost-bg: rgba(255,255,255,0.8);
+  --studio-tab-active-bg: #1A1A2E;
+  --studio-tab-active-border: transparent;
+  --studio-chip-active-bg: rgba(245,158,11,0.12);
+  --studio-chip-active-border: rgba(245,158,11,0.22);
+  --studio-focus-ring: rgba(245,158,11,0.45);
+  --studio-accent-line: linear-gradient(90deg, rgba(245,158,11,0.15), rgba(245,158,11,0.04));
+  --studio-progress-track: rgba(0,0,0,0.06);
+  --studio-progress-fill: #F59E0B;
+  --studio-content-gradient-a: 0.04;
+  --studio-content-gradient-b: 0.07;
+  --studio-content-gradient-c: 0.12;
+  --studio-score-ring-active: #F59E0B;
+  --studio-score-ring-track: rgba(0,0,0,0.08);
+  --studio-score-ring-shadow: rgba(245,158,11,0.15);
+  --studio-highlight-border: rgba(245,158,11,0.12);
+  --studio-icon-surface-border: rgba(0,0,0,0.06);
   -webkit-tap-highlight-color: transparent;
-  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
-  --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
 }
 
 .selectable,
@@ -95,70 +103,33 @@ textarea {
 }
 
 [data-theme='dark'] {
-  --fm-blue: #6BB3E8;
-  --fm-blue-light: #9DD4F7;
-  --fm-blue-deep: #0D2847;
-  --fm-blue-soft: rgba(107, 179, 232, 0.18);
-  --fm-yellow: #FFD44D;
-  --fm-green: #5CB88A;
-  --fm-green-soft: rgba(92, 184, 138, 0.15);
-  --recall-coral: var(--fm-blue);
-  --recall-coral-soft: var(--fm-blue-soft);
-  --recall-sage: var(--fm-green);
-  --recall-lavender: #8BA8E8;
-  --studio-bg: #0A1628;
-  --studio-bg-deep: #060E1A;
-  --studio-surface: rgba(12, 12, 12, 0.72);
-  --studio-surface-soft: rgba(255, 255, 255, 0.06);
-  --studio-text: #f5f5f5;
-  --studio-text-muted: rgba(255, 255, 255, 0.82);
-  --studio-text-bright: #ffffff;
-  --studio-accent: rgba(255, 255, 255, 0.92);
-  --studio-accent-soft: rgba(255, 255, 255, 0.12);
-  --studio-border: rgba(255, 255, 255, 0.12);
-  --studio-shadow: rgba(0, 0, 0, 0.6);
-  --studio-scrim-rgb: 0, 0, 0;
-  --studio-scrim-base: 0.76;
-  --studio-header-fade: rgba(0, 0, 0, 0.92);
-  --studio-glow-rgb: 255, 255, 255;
-  --studio-smoke-rgb: 255, 255, 255;
-  --studio-vignette-inner: rgba(0, 0, 0, 0.25);
-  --studio-vignette-outer: rgba(0, 0, 0, 0.65);
-  --studio-skeleton-a: rgba(255, 255, 255, 0.06);
-  --studio-skeleton-b: rgba(255, 255, 255, 0.12);
-  --studio-mic-pulse: rgba(255, 255, 255, 0.35);
-  --studio-card-bg: rgba(8, 8, 8, 0.82);
-  --studio-card-border: rgba(255, 255, 255, 0.14);
-  --studio-card-inset: rgba(255, 255, 255, 0.08);
-  --studio-chrome-bg: rgba(0, 0, 0, 0.68);
-  --studio-tabbar-bg: rgba(0, 0, 0, 0.78);
-  --studio-input-bg: rgba(0, 0, 0, 0.55);
-  --studio-input-placeholder: rgba(255, 255, 255, 0.45);
-  --studio-bubble-user-bg: rgba(255, 255, 255, 0.16);
-  --studio-bubble-user-border: rgba(255, 255, 255, 0.22);
-  --studio-bubble-assistant-bg: rgba(0, 0, 0, 0.55);
-  --studio-btn-hover-bg: rgba(255, 255, 255, 0.1);
-  --studio-btn-hover-border: rgba(255, 255, 255, 0.28);
-  --studio-btn-hover-shadow: rgba(255, 255, 255, 0.08);
-  --studio-btn-primary-bg: rgba(255, 255, 255, 0.12);
-  --studio-btn-primary-border: rgba(255, 255, 255, 0.22);
-  --studio-btn-ghost-bg: rgba(0, 0, 0, 0.35);
-  --studio-tab-active-bg: rgba(255, 255, 255, 0.09);
-  --studio-tab-active-border: rgba(255, 255, 255, 0.12);
-  --studio-chip-active-bg: rgba(255, 255, 255, 0.18);
-  --studio-chip-active-border: rgba(255, 255, 255, 0.35);
-  --studio-focus-ring: rgba(255, 255, 255, 0.45);
-  --studio-accent-line: linear-gradient(90deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.15));
-  --studio-progress-track: rgba(255, 255, 255, 0.12);
-  --studio-progress-fill: rgba(255, 255, 255, 0.75);
-  --studio-content-gradient-a: 0.38;
-  --studio-content-gradient-b: 0.62;
-  --studio-content-gradient-c: 0.72;
-  --studio-score-ring-active: rgba(255, 255, 255, 0.88);
-  --studio-score-ring-track: rgba(255, 255, 255, 0.1);
-  --studio-score-ring-shadow: rgba(255, 255, 255, 0.08);
-  --studio-highlight-border: rgba(255, 255, 255, 0.18);
-  --studio-icon-surface-border: rgba(255, 255, 255, 0.1);
+  --studio-bg: #1A1B2E;
+  --studio-bg-deep: #12131F;
+  --studio-surface: rgba(255,255,255,0.05);
+  --studio-surface-soft: rgba(255,255,255,0.03);
+  --studio-text: #E8E9F3;
+  --studio-text-muted: rgba(232,233,243,0.45);
+  --studio-text-bright: #FFFFFF;
+  --studio-accent: #F59E0B;
+  --studio-accent-soft: rgba(245,158,11,0.12);
+  --studio-border: rgba(255,255,255,0.08);
+  --studio-shadow: rgba(0,0,0,0.3);
+  --studio-scrim-rgb: 26,27,46;
+  --studio-scrim-base: 0.6;
+  --studio-header-fade: rgba(26,27,46,0.95);
+  --studio-card-bg: rgba(255,255,255,0.05);
+  --studio-card-border: rgba(255,255,255,0.08);
+  --studio-tabbar-bg: rgba(26,27,46,0.97);
+  --studio-input-bg: rgba(255,255,255,0.07);
+  --studio-input-placeholder: rgba(232,233,243,0.35);
+  --studio-tab-active-bg: rgba(245,158,11,0.15);
+  --studio-tab-active-border: rgba(245,158,11,0.25);
+  --studio-progress-fill: #F59E0B;
+  --studio-score-ring-active: #F59E0B;
+  --studio-btn-primary-bg: rgba(245,158,11,0.15);
+  --studio-btn-primary-border: rgba(245,158,11,0.28);
+  --studio-skeleton-a: rgba(255,255,255,0.04);
+  --studio-skeleton-b: rgba(255,255,255,0.08);
 }
 
 [data-theme='light'] {
@@ -5493,3 +5464,285 @@ html[data-easy-mode='true'] .home-widget__label { font-size: 16px; }
 .connections-actions .studio-btn { min-width: 100px; }
 .connections-game__win { text-align: center; color: var(--fm-green); font-weight: 650; }
 .connections-game__lose { font-size: 14px; color: var(--studio-text-muted); margin: 0 0 10px; }
+
+/* ═══════════════════════════════════════════
+   DASHBOARD DESIGN SYSTEM
+   ═══════════════════════════════════════════ */
+
+/* ── Global ── */
+body, html {
+  background: var(--studio-bg) !important;
+  font-family: var(--apple-font);
+}
+.studio-screen { background: var(--studio-bg) !important; }
+.studio-app.dash-shell { background: var(--studio-bg) !important; }
+
+/* Suppress old flower/scrim layers */
+.flower-stage, .studio-app-scrim { display: none !important; }
+
+/* ── Cards ── */
+.studio-card,
+.event-card,
+.state-recon-card,
+.med-tracker__card,
+.familiar-face-card,
+.routine-card,
+.memory-bead {
+  background: var(--studio-card-bg) !important;
+  border: 1px solid var(--studio-card-border) !important;
+  box-shadow: var(--dash-shadow, 0 2px 16px rgba(0,0,0,0.07)) !important;
+  border-radius: 16px !important;
+}
+
+/* ── Tab bar ── */
+.studio-tab-bar {
+  background: var(--studio-tabbar-bg) !important;
+  border-top: 1px solid var(--studio-card-border) !important;
+  box-shadow: 0 -2px 16px rgba(0,0,0,0.06) !important;
+}
+.studio-tab--active {
+  background: transparent !important;
+}
+.studio-tab--active .studio-tab__label {
+  color: var(--studio-accent) !important;
+  font-weight: 700 !important;
+}
+.studio-tab--active .studio-tab__icon svg * {
+  fill: var(--studio-accent) !important;
+  stroke: var(--studio-accent) !important;
+}
+
+/* ── Header ── */
+.studio-header {
+  background: var(--studio-header-fade) !important;
+  border-bottom: 1px solid var(--studio-card-border) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ── Quick actions / buttons ── */
+.quick-action {
+  background: var(--studio-card-bg) !important;
+  border: 1px solid var(--studio-card-border) !important;
+  box-shadow: var(--dash-shadow-sm, 0 1px 6px rgba(0,0,0,0.06)) !important;
+  border-radius: 14px !important;
+}
+.studio-btn--primary {
+  background: var(--studio-accent) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}
+
+/* ── Home tab background ── */
+.home-tab, .events-tab, .mind-tab {
+  background: var(--studio-bg) !important;
+}
+
+/* ── Section titles ── */
+.studio-section-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--studio-text-muted);
+}
+
+/* ── Dashboard Login ── */
+.dash-login {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem 3rem;
+  background: var(--studio-bg);
+  gap: 2rem;
+}
+.dash-login__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.dash-login__icon-wrap {
+  width: 60px; height: 60px;
+  border-radius: 18px;
+  background: var(--studio-accent);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 20px rgba(245,158,11,0.3);
+  color: #fff;
+}
+.dash-login__icon-wrap svg * { fill: #fff; stroke: #fff; }
+.dash-login__wordmark {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--studio-text-bright);
+  letter-spacing: -0.04em;
+  margin: 0;
+}
+.dash-login__tagline {
+  font-size: 0.8rem;
+  color: var(--studio-text-muted);
+  letter-spacing: 0.04em;
+}
+.dash-login__card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--studio-card-bg);
+  border: 1px solid var(--studio-card-border);
+  border-radius: 20px;
+  padding: 1.75rem 1.5rem;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+.dash-login__step { display: flex; flex-direction: column; }
+.dash-login__eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--studio-accent);
+  margin-bottom: 0.3rem;
+}
+.dash-login__title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--studio-text-bright);
+  margin-bottom: 1.25rem;
+  line-height: 1.2;
+}
+.dash-login__actions { display: flex; flex-direction: column; gap: 0.65rem; }
+.dash-back {
+  font-size: 0.82rem;
+  color: var(--studio-accent);
+  background: none; border: none; cursor: pointer;
+  text-align: left; padding: 0; margin-bottom: 0.75rem;
+  font-weight: 500;
+}
+
+/* Dashboard buttons */
+.dash-btn {
+  display: flex; align-items: center; gap: 0.85rem;
+  width: 100%; padding: 0.8rem 1rem;
+  border-radius: 13px; border: 1px solid var(--studio-card-border);
+  background: var(--studio-surface);
+  cursor: pointer; text-align: left;
+  transition: box-shadow 0.15s, transform 0.1s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.dash-btn:active { transform: scale(0.98); }
+.dash-btn--primary {
+  background: var(--studio-accent) !important;
+  border-color: transparent !important;
+  box-shadow: 0 3px 14px rgba(245,158,11,0.28) !important;
+}
+.dash-btn--primary .dash-btn__label { color: #fff !important; font-weight: 700; }
+.dash-btn--primary .dash-btn__hint { color: rgba(255,255,255,0.7) !important; }
+.dash-btn--secondary { background: var(--studio-surface); }
+.dash-btn--ghost { background: transparent; border-style: dashed; }
+.dash-btn--user { background: var(--studio-surface); }
+.dash-btn__icon-wrap {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.dash-btn__icon-wrap--amber { background: rgba(245,158,11,0.12); color: var(--studio-accent); }
+.dash-btn__icon-wrap--amber svg * { fill: var(--studio-accent); stroke: var(--studio-accent); }
+.dash-btn__icon-wrap--teal { background: rgba(78,205,196,0.12); color: #4ECDC4; }
+.dash-btn__icon-wrap--teal svg * { fill: #4ECDC4; stroke: #4ECDC4; }
+.dash-btn__body { display: flex; flex-direction: column; gap: 1px; }
+.dash-btn__label { font-size: 0.9rem; font-weight: 600; color: var(--studio-text); }
+.dash-btn__hint { font-size: 0.75rem; color: var(--studio-text-muted); }
+.dash-btn__avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--studio-accent);
+  color: #fff; font-size: 0.75rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.dash-input {
+  width: 100%; padding: 0.75rem 1rem;
+  border-radius: 11px; border: 1px solid var(--studio-card-border);
+  background: var(--studio-input-bg); color: var(--studio-text);
+  font-family: var(--apple-font); font-size: 0.95rem; outline: none;
+  transition: border-color 0.15s; box-sizing: border-box;
+}
+.dash-input:focus { border-color: var(--studio-accent); box-shadow: 0 0 0 3px var(--studio-accent-soft); }
+.dash-error { font-size: 0.8rem; color: #EF4444; margin: 0; }
+
+/* ── Dashboard Hero ── */
+.dash-hero {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 1.25rem 1rem;
+}
+.dash-hero__left { flex: 1; }
+.dash-hero__date {
+  font-size: 0.7rem; font-weight: 600;
+  letter-spacing: 0.09em; text-transform: uppercase;
+  color: var(--studio-text-muted); margin-bottom: 0.3rem;
+}
+.dash-hero__greeting {
+  font-size: clamp(1.6rem, 5.5vw, 2.2rem);
+  font-weight: 800; line-height: 1.12;
+  letter-spacing: -0.025em;
+  color: var(--studio-text-bright); margin: 0;
+}
+.dash-hero__name { color: var(--studio-accent); }
+
+/* Score ring */
+.dash-hero__ring {
+  position: relative; width: 68px; height: 68px;
+  flex-shrink: 0; margin-left: 1rem;
+}
+.dash-hero__ring-inner {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 1px;
+}
+.dash-hero__score { font-size: 1.05rem; font-weight: 800; line-height: 1; }
+.dash-hero__score-label {
+  font-size: 0.57rem; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--studio-text-muted);
+}
+
+/* ── Metric cards (Blood Sugar / Heart Rate style) ── */
+.dash-metric-row {
+  display: flex; gap: 0.75rem;
+  padding: 0 1.25rem 0.75rem; overflow-x: auto;
+  scrollbar-width: none;
+}
+.dash-metric-row::-webkit-scrollbar { display: none; }
+.dash-metric-card {
+  flex: 0 0 auto; width: 140px;
+  background: var(--studio-card-bg);
+  border: 1px solid var(--studio-card-border);
+  border-radius: 16px;
+  padding: 1rem 0.9rem 0.85rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.dash-metric-card__icon-wrap {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 0.6rem;
+}
+.dash-metric-card__title {
+  font-size: 0.78rem; font-weight: 600;
+  color: var(--studio-text-muted); margin-bottom: 0.35rem;
+}
+.dash-metric-card__value {
+  font-size: 1.7rem; font-weight: 800;
+  color: var(--studio-text-bright);
+  letter-spacing: -0.03em; line-height: 1;
+}
+.dash-metric-card__unit {
+  font-size: 0.72rem; font-weight: 500;
+  color: var(--studio-text-muted); margin-left: 2px;
+}
+.dash-metric-card__badge {
+  display: inline-flex; align-items: center;
+  padding: 0.2rem 0.55rem; border-radius: 20px;
+  font-size: 0.68rem; font-weight: 600; margin-top: 0.4rem;
+}
+.dash-metric-card__badge--green { background: #D1FAE5; color: #065F46; }
+.dash-metric-card__badge--amber { background: #FEF3C7; color: #92400E; }
+.dash-metric-card__badge--red { background: #FEE2E2; color: #991B1B; }

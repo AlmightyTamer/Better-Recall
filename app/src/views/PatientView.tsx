@@ -29,6 +29,7 @@ import SleepTracker from '../components/SleepTracker';
 import GameHub from '../components/games/GameHub';
 import { memoryPhotoUrl } from '../lib/memoryPhotos';
 import { widgetImageUrl } from '../lib/widgetImages';
+import DashHero from '../components/DashHero';
 
 type Tab = 'home' | 'mind' | 'sleep' | 'voice' | 'meds' | 'events' | 'stability';
 
@@ -265,17 +266,7 @@ function HomeTab({
     <div className="home-tab studio-scroll">
       <PresencePulseBanner />
 
-      <header className="home-hero-slim">
-        <div className="home-hero-slim__text">
-          <p className="home-tab__date">{dateLabel}</p>
-          <h1 className="home-tab__title">{timeGreeting()}, {firstName}</h1>
-        </div>
-        {caregiverName && caregiverPhone && (
-          <a href={`tel:${caregiverPhone}`} className="home-hero-slim__call tap-feedback" aria-label={`Call ${caregiverName}`}>
-            <StudioIcon name="user" size={18} />
-          </a>
-        )}
-      </header>
+      <DashHero greeting={timeGreeting()} firstName={firstName} dateLabel={dateLabel} />
 
       {dueMeds.length > 0 && (
         <button type="button" className="home-alert-strip home-alert-strip--meds tap-feedback" onClick={() => onNavigate('meds')}>
