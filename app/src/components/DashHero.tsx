@@ -12,7 +12,12 @@ export default function DashHero({ greeting, firstName, dateLabel }: Props) {
   const heroRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const t = setTimeout(() => heroRef.current?.classList.add('dash-hero--visible'), 80);
+    const el = heroRef.current;
+    if (!el) return;
+    const t = setTimeout(() => {
+      el.style.opacity = '1';
+      el.style.transform = 'translateY(0)';
+    }, 80);
     return () => clearTimeout(t);
   }, []);
 
