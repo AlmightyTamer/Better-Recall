@@ -111,10 +111,6 @@ export const useAppStore = create<AppState>((set, get) => ({
       acseSignalLog: [event, ...state.acseSignalLog].slice(0, 50),
     }));
 
-    if (next < threshold && !get().comfortModeActive) {
-      get().activateComfortMode();
-    }
-
     const user = get().user;
     if (user?.id) {
       db.acseScores.add({

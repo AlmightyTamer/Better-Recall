@@ -22,7 +22,7 @@ export async function loadUserSession(user: User): Promise<void> {
   useAppStore.setState({
     user,
     acseScore: latestScore?.score ?? 100,
-    comfortModeActive: (latestScore?.score ?? 100) < 50,
+    comfortModeActive: false,
     supervisorAlerts: sortedAlerts.map((a) => ({
       id: String(a.id ?? `${a.timestamp}-${a.message}`),
       message: a.message,
