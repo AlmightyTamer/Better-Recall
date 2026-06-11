@@ -4,10 +4,11 @@ import { useACSE } from '../hooks/useACSE';
 import { claraChat } from '../services/groq';
 import { useAppStore } from '../store/appStore';
 import { detectLoneliness } from '../lib/memoryRecap';
-import { CLARA_BACKGROUND, CLARA_PORTRAIT, CLARA_TAGLINE } from '../lib/clara';
+import { CLARA_BACKGROUND, CLARA_PORTRAIT } from '../lib/clara';
 import { db, type User } from '../db/db';
 import { speak, stopSpeaking, unlockAudioPlayback } from '../services/elevenlabs';
 import StudioIcon from './StudioIcon';
+import ClaraFlowerPulse from './ClaraFlowerPulse';
 
 type VoiceState = 'idle' | 'listening' | 'thinking' | 'speaking';
 
@@ -32,10 +33,11 @@ export default function VoiceAgent() {
   const sessionActiveRef = useRef(false);
 
   const firstName = user?.name?.split(' ')[0] ?? 'friend';
+  const flowerActive = state === 'thinking' || state === 'speaking';
 
   useEffect(() => {
     unlockAudioPlayback();
-    setClaraLine(`Hello, ${firstName}. I'm Clara — tap the microphone when you'd like to chat.`);
+    setClaraLine(`Hello, ${firstName}. Tap the microphone when you'd like to chat.`);
     return () => {
       sessionActiveRef.current = false;
       stopSpeaking();
@@ -77,7 +79,7 @@ export default function VoiceAgent() {
 
     setError('');
     setState('thinking');
-    setClaraLine('…');
+    setClaraLine('');
 
     let response = "I'm here with you. Could you say that once more?";
 
@@ -188,52 +190,39 @@ export default function VoiceAgent() {
   const showLiveTranscript = state === 'listening' && transcript.length > 0;
 
   return (
-    <div className="clara-room">
+    <div className="clara-room clara-room--seamless">
       <div
         className="clara-room__backdrop"
         aria-hidden
         style={{ backgroundImage: `url(${CLARA_BACKGROUND})` }}
-      >
-        <div className="clara-room__glow clara-room__glow--1" />
-        <div className="clara-room__glow clara-room__glow--2" />
-        <div className="clara-room__glow clara-room__glow--3" />
-      </div>
+      />
 
       <div className="clara-room__inner studio-scroll">
-        <header className="clara-room__header">
-          <div className="clara-room__portrait-wrap">
-            <img
-              src={CLARA_PORTRAIT}
-              alt="Clara, your companion"
-              className={`clara-room__portrait clara-room__portrait--${state}`}
-            />
-            <span className={`clara-room__live clara-room__live--${state}`} aria-hidden />
-          </div>
+        <header className="clara-room__header clara-room__header--slim">
+          <img src={CLARA_PORTRAIT} alt="" className="clara-room__avatar-sm" />
           <div className="clara-room__intro">
             <h1 className="clara-room__name">Clara</h1>
-            <p className="clara-room__tagline">{CLARA_TAGLINE}</p>
             <span className={`clara-room__badge clara-room__badge--${state}`}>{statusLabel}</span>
           </div>
         </header>
 
-        <div className={`clara-room__speech clara-room__speech--${state}`} aria-live="polite">
-          {state === 'listening' && (
-            <div className="clara-room__wave" aria-hidden>
+        <div className="clara-room__stage">
+          <ClaraFlowerPulse active={flowerActive} size={96} className="clara-room__flower" />
+          {!flowerActive && state === 'listening' && (
+            <div className="clara-room__wave clara-room__wave--inline" aria-hidden>
               {[0, 1, 2, 3, 4].map((i) => (
                 <span key={i} className="clara-room__wave-bar" style={{ animationDelay: `${i * 0.1}s` }} />
               ))}
             </div>
           )}
-          {state === 'thinking' && (
-            <div className="clara-room__thinking" aria-hidden>
-              <span /><span /><span />
-            </div>
-          )}
+        </div>
+
+        <div className={`clara-room__speech clara-room__speech--seamless clara-room__speech--${state}`} aria-live="polite">
           {error ? (
             <p className="clara-room__error">{error}</p>
           ) : (
             <>
-              <p className="clara-room__line">{claraLine}</p>
+              {claraLine ? <p className="clara-room__line">{claraLine}</p> : null}
               {showLiveTranscript && (
                 <p className="clara-room__heard">
                   <span className="clara-room__heard-label">Hearing:</span> {transcript}

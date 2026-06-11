@@ -78,6 +78,8 @@
   --studio-highlight-border: rgba(74, 144, 217, 0.3);
   --studio-icon-surface-border: rgba(74, 144, 217, 0.2);
   -webkit-tap-highlight-color: transparent;
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
 }
 
 .selectable,
@@ -165,9 +167,24 @@ textarea {
 html, body, #root {
   height: 100%;
   overflow: hidden;
-  background-color: var(--studio-bg);
+  background:
+    radial-gradient(ellipse 120% 80% at 10% -10%, rgba(142, 205, 245, 0.45) 0%, transparent 55%),
+    radial-gradient(ellipse 90% 70% at 95% 20%, rgba(255, 212, 77, 0.22) 0%, transparent 50%),
+    linear-gradient(165deg, var(--studio-bg) 0%, var(--studio-bg-deep) 55%, var(--fm-blue-soft) 100%);
   color: var(--studio-text);
+  font-family: var(--font-body);
   font-size: 20px;
+}
+
+h1, h2, h3,
+.home-tab__title,
+.studio-page-title,
+.login-brand-title,
+.splash-loader__title,
+.clara-room__name,
+.disclaimer-card__title {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
 }
 
 * {
@@ -281,7 +298,7 @@ html, body, #root {
 
 /* ── Card shadow ── */
 .card {
-  background: var(--studio-card-bg);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(235, 245, 255, 0.92) 55%, rgba(214, 235, 250, 0.88) 100%);
   border: 1.5px solid var(--studio-card-border);
   border-radius: 22px;
   box-shadow:
@@ -290,6 +307,10 @@ html, body, #root {
     inset 0 1px 0 var(--studio-card-inset);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+}
+
+[data-theme='dark'] .card {
+  background: linear-gradient(145deg, rgba(30, 45, 70, 0.95) 0%, rgba(20, 35, 58, 0.92) 100%);
 }
 
 /* ── Studio flower screens ── */
@@ -622,12 +643,20 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   transition: opacity 0.2s ease;
-  background: linear-gradient(
-    180deg,
-    rgba(var(--studio-scrim-rgb), var(--studio-content-gradient-a)) 0%,
-    rgba(var(--studio-scrim-rgb), var(--studio-content-gradient-b)) 40%,
-    rgba(var(--studio-scrim-rgb), var(--studio-content-gradient-c)) 100%
-  );
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 0%, rgba(142, 205, 245, 0.18) 0%, transparent 55%),
+    linear-gradient(
+      180deg,
+      rgba(var(--studio-scrim-rgb), var(--studio-content-gradient-a)) 0%,
+      rgba(var(--studio-scrim-rgb), var(--studio-content-gradient-b)) 40%,
+      rgba(var(--studio-scrim-rgb), var(--studio-content-gradient-c)) 100%
+    );
+}
+
+.studio-scroll {
+  background:
+    radial-gradient(ellipse 80% 50% at 100% 0%, rgba(255, 212, 77, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 45% at 0% 100%, rgba(74, 144, 217, 0.1) 0%, transparent 50%);
 }
 
 .login-theme-toggle {
@@ -1698,41 +1727,133 @@ html, body, #root {
   line-height: 1.5;
 }
 
-/* ── Splash screen ── */
-.splash-screen--photo {
-  background: var(--studio-bg);
+/* ── Splash / loading screen (distinct from login) ── */
+.splash-screen--loader {
+  background: linear-gradient(145deg, #0F2847 0%, #1A4A7A 40%, #2E6DB0 100%);
 }
 
-.splash-screen__bg {
+.splash-loader__mesh {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 0;
+  background:
+    radial-gradient(circle at 25% 30%, rgba(142, 205, 245, 0.35) 0%, transparent 45%),
+    radial-gradient(circle at 75% 70%, rgba(255, 212, 77, 0.2) 0%, transparent 40%);
+  animation: splashMeshShift 8s ease-in-out infinite alternate;
 }
 
-.splash-screen__scrim {
+@keyframes splashMeshShift {
+  from { opacity: 0.85; transform: scale(1); }
+  to { opacity: 1; transform: scale(1.04); }
+}
+
+.splash-loader__content {
   position: absolute;
   inset: 0;
-  z-index: 1;
-  background: rgba(15, 40, 71, 0.42);
-}
-
-.splash-screen--photo .splash-wordmark {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
   z-index: 6;
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 32px;
+  text-align: center;
 }
 
-.splash-screen--photo .splash-progress {
+.splash-loader__title {
+  margin: 0 0 10px;
+  font-size: 52px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+}
+
+.splash-loader__sub {
+  margin: 0 0 36px;
+  font-size: 17px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.82);
+  font-family: var(--font-body);
+}
+
+.splash-orbit {
+  position: relative;
+  width: 72px;
+  height: 72px;
+}
+
+.splash-orbit__ring {
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+}
+
+.splash-orbit__dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: var(--fm-yellow);
+  box-shadow: 0 0 12px rgba(255, 212, 77, 0.8);
+  animation: splashOrbit 1.4s linear infinite;
+}
+
+.splash-orbit__dot--1 { animation-delay: 0s; }
+.splash-orbit__dot--2 { animation-delay: -0.47s; background: #8ECDF5; box-shadow: 0 0 12px rgba(142, 205, 245, 0.8); }
+.splash-orbit__dot--3 { animation-delay: -0.93s; background: #fff; box-shadow: 0 0 10px rgba(255, 255, 255, 0.7); }
+
+@keyframes splashOrbit {
+  from { transform: rotate(0deg) translateX(32px) rotate(0deg); }
+  to { transform: rotate(360deg) translateX(32px) rotate(-360deg); }
+}
+
+/* ── Login screen (distinct from loading) ── */
+.login-screen--auth {
+  background: linear-gradient(180deg, var(--fm-blue-soft) 0%, var(--studio-bg) 45%, #fff 100%);
+}
+
+.login-screen__gradient {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(74, 144, 217, 0.25) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 90% 80%, rgba(255, 212, 77, 0.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.login-top--auth {
+  position: absolute;
+  top: max(48px, calc(var(--sat) + 28px));
+  left: 0;
+  right: 0;
   z-index: 6;
+  text-align: center;
+  padding: 0 24px;
+}
+
+.login-brand-title {
+  margin: 0;
+  font-size: 42px;
+  font-weight: 700;
+  color: var(--fm-blue-deep);
+  line-height: 1.05;
+}
+
+.login-brand-sub {
+  margin: 8px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--fm-blue);
+  font-family: var(--font-body);
+}
+
+.login-panel--auth {
+  border-radius: 28px 28px 20px 20px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.99) 0%, rgba(235, 245, 255, 0.97) 100%);
+  box-shadow: 0 -8px 40px rgba(26, 74, 122, 0.15), 0 20px 48px rgba(26, 74, 122, 0.12);
 }
 
 /* ── Splash progress ── */
@@ -2280,6 +2401,130 @@ html, body, #root {
   flex-direction: column;
   padding: 16px 18px 28px;
   gap: 14px;
+}
+
+/* ── Clara seamless layout + flower pulse indicator ── */
+.clara-room--seamless .clara-room__backdrop::after {
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.55) 0%, rgba(235, 245, 255, 0.75) 50%, rgba(214, 235, 250, 0.85) 100%);
+}
+
+.clara-room__header--slim {
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.45);
+  border: none;
+  box-shadow: none;
+}
+
+.clara-room__avatar-sm {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 4px 14px rgba(74, 144, 217, 0.3);
+  flex-shrink: 0;
+}
+
+.clara-room__stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 110px;
+  padding: 8px 0;
+}
+
+.clara-room__flower {
+  flex-shrink: 0;
+}
+
+.clara-room__wave--inline {
+  margin-bottom: 0;
+}
+
+.clara-room__speech--seamless {
+  flex: 1;
+  min-height: 100px;
+  background: rgba(255, 255, 255, 0.5);
+  border: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.clara-flower-pulse {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clara-flower-pulse__center {
+  position: absolute;
+  width: 22%;
+  height: 22%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #FFE566 0%, #F5A623 100%);
+  box-shadow: 0 0 12px rgba(245, 166, 35, 0.5);
+  z-index: 3;
+}
+
+.clara-flower-pulse__stem {
+  position: absolute;
+  bottom: 8%;
+  left: 50%;
+  width: 3px;
+  height: 28%;
+  margin-left: -1.5px;
+  background: linear-gradient(180deg, #3D8B6E, #2d6b54);
+  border-radius: 2px;
+  z-index: 1;
+}
+
+.clara-flower-pulse__petal {
+  position: absolute;
+  width: 26%;
+  height: 26%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #8ECDF5, #3B82C4);
+  top: 50%;
+  left: 50%;
+  margin: -13% 0 0 -13%;
+  transform: rotate(var(--petal-angle)) translateY(-42%);
+  transform-origin: center center;
+  z-index: 2;
+  opacity: 1;
+}
+
+.clara-flower-pulse--active .clara-flower-pulse__petal {
+  animation: claraPetalCycle 2.4s ease-in-out infinite;
+  animation-delay: var(--petal-delay);
+}
+
+@keyframes claraPetalCycle {
+  0%, 100% {
+    opacity: 1;
+    transform: rotate(var(--petal-angle)) translateY(-42%) scale(1);
+  }
+  35% {
+    opacity: 0;
+    transform: rotate(var(--petal-angle)) translateY(18%) scale(0.3) rotate(25deg);
+  }
+  55% {
+    opacity: 0;
+    transform: rotate(var(--petal-angle)) translateY(-20%) scale(0.1);
+  }
+  75% {
+    opacity: 0.6;
+    transform: rotate(var(--petal-angle)) translateY(-35%) scale(0.85);
+  }
+}
+
+.clara-flower-pulse--active .clara-flower-pulse__center {
+  animation: claraCenterPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes claraCenterPulse {
+  0%, 100% { transform: scale(1); }
+  40% { transform: scale(0.85); }
+  70% { transform: scale(1.08); }
 }
 
 .clara-room__header {

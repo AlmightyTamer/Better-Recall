@@ -27,8 +27,8 @@ import GoldenPathDemo from '../components/GoldenPathDemo';
 import MemoryPhotoRecap from '../components/MemoryPhotoRecap';
 import SleepTracker from '../components/SleepTracker';
 import GameHub from '../components/games/GameHub';
-import { CLARA_BACKGROUND, CLARA_PORTRAIT } from '../lib/clara';
 import { memoryPhotoUrl } from '../lib/memoryPhotos';
+import { widgetArtUrl } from '../lib/widgetArt';
 
 type Tab = 'home' | 'mind' | 'sleep' | 'voice' | 'meds' | 'events' | 'stability';
 
@@ -203,14 +203,12 @@ export default function PatientView() {
 
 function HomePhotoWidget({
   photo,
-  avatar,
   icon,
   label,
   sub,
   onClick,
 }: {
   photo: string;
-  avatar?: string;
   icon: IconName;
   label: string;
   sub?: string;
@@ -219,7 +217,6 @@ function HomePhotoWidget({
   return (
     <button type="button" className="home-widget tap-feedback" onClick={onClick} aria-label={label}>
       <img src={photo} alt="" className="home-widget__photo" />
-      {avatar && <img src={avatar} alt="" className="home-widget__avatar" />}
       <div className="home-widget__caption">
         <StudioIcon name={icon} size={18} />
         <div className="home-widget__caption-text">
@@ -295,11 +292,11 @@ function HomeTab({
 
       <div className="home-widgets">
         <HomePhotoWidget photo={memoryPhotoUrl('garden')} icon="heart" label="Memories" onClick={onMemoryRecap} />
-        <HomePhotoWidget photo={CLARA_BACKGROUND} avatar={CLARA_PORTRAIT} icon="clara" label="Clara" sub="Tap to talk" onClick={() => onNavigate('voice')} />
-        <HomePhotoWidget photo={memoryPhotoUrl('birthday')} icon="brain" label="Mind games" onClick={() => onNavigate('mind')} />
-        <HomePhotoWidget photo={memoryPhotoUrl('porch')} icon="moon" label="Sleep" onClick={() => onNavigate('sleep')} />
-        <HomePhotoWidget photo={memoryPhotoUrl('dinner')} icon="meds" label="Meds" onClick={() => onNavigate('meds')} />
-        <HomePhotoWidget photo={memoryPhotoUrl('picnic')} icon="events" label="Today" onClick={() => onNavigate('events')} />
+        <HomePhotoWidget photo={widgetArtUrl('clara')} icon="clara" label="Clara" sub="Tap to talk" onClick={() => onNavigate('voice')} />
+        <HomePhotoWidget photo={widgetArtUrl('mind')} icon="brain" label="Mind games" onClick={() => onNavigate('mind')} />
+        <HomePhotoWidget photo={widgetArtUrl('sleep')} icon="moon" label="Sleep" onClick={() => onNavigate('sleep')} />
+        <HomePhotoWidget photo={widgetArtUrl('meds')} icon="meds" label="Meds" onClick={() => onNavigate('meds')} />
+        <HomePhotoWidget photo={widgetArtUrl('today')} icon="events" label="Today" onClick={() => onNavigate('events')} />
       </div>
 
       <div className="home-status-cards">

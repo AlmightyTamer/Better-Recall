@@ -4,7 +4,6 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import FlowerStage from './FlowerStage';
 import AnimatedPanel from './AnimatedPanel';
-import RecallLogo from './RecallLogo';
 import { getFlowers, type FlowerKey } from '../flowers';
 import { useAppStore } from '../store/appStore';
 import ThemeToggle from './ThemeToggle';
@@ -128,11 +127,12 @@ export default function LoginScreen() {
   }
 
   return (
-    <div ref={screenRef} className="studio-screen login-screen">
+    <div ref={screenRef} className="studio-screen login-screen login-screen--auth">
+      <div className="login-screen__gradient" aria-hidden />
       <FlowerStage
         key={`${theme}-${flowerKey}`}
         src={flowerSrc}
-        glowIntensity={0.45}
+        glowIntensity={0.55}
         variant="hero"
       />
 
@@ -140,12 +140,12 @@ export default function LoginScreen() {
         <ThemeToggle />
       </div>
 
-      <div className="login-top login-top--slim">
-        <RecallLogo size="lg" />
-        <p className="login-subtitle">Memory care for Margaret &amp; family</p>
+      <div className="login-top login-top--auth">
+        <h1 className="login-brand-title">Recall</h1>
+        <p className="login-brand-sub">Sign in to continue</p>
       </div>
 
-      <div ref={panelRef} className="login-panel login-panel--streamlined">
+      <div ref={panelRef} className="login-panel login-panel--auth">
         {role !== null && (
           <div className="login-steps" aria-label={`Step ${loginStep} of 3`}>
             {[1, 2, 3].map((step) => (
