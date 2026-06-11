@@ -14,7 +14,6 @@ import { getFlowers, type FlowerKey } from '../flowers';
 import ThemeToggle from '../components/ThemeToggle';
 import { isMedicationDueSoon } from '../lib/schedule';
 import { logout } from '../lib/session';
-import CognitiveAurora from '../components/CognitiveAurora';
 import MemoryThreads from '../components/MemoryThreads';
 import PresencePulseBanner from '../components/PresencePulse';
 import WhereAmICard from '../components/WhereAmICard';
@@ -29,6 +28,7 @@ import MemoryPhotoRecap from '../components/MemoryPhotoRecap';
 import SleepTracker from '../components/SleepTracker';
 import GameHub from '../components/games/GameHub';
 import { CLARA_PORTRAIT } from '../lib/clara';
+import { memoryPhotoUrl } from '../lib/memoryPhotos';
 
 type Tab = 'home' | 'mind' | 'sleep' | 'voice' | 'meds' | 'events' | 'stability';
 
@@ -237,99 +237,78 @@ function HomeTab({
     <div className="home-tab studio-scroll">
       <PresencePulseBanner />
 
-      <div className="home-tab__hero home-tab__hero--aurora">
-        <CognitiveAurora />
-        <div className="home-tab__hero-text">
+      <header className="home-hero-slim">
+        <div className="home-hero-slim__text">
           <p className="home-tab__date">{dateLabel}</p>
           <h1 className="home-tab__title">{timeGreeting()}, {firstName}</h1>
         </div>
-      </div>
-
-      <WhereAmICard />
-      <StateReconCard />
-
-      <button
-        type="button"
-        className="clara-hero-cta tap-feedback"
-        onClick={() => onNavigate('voice')}
-      >
-        <img src={CLARA_PORTRAIT} alt="" className="clara-hero-cta__avatar" />
-        <div>
-          <p className="clara-hero-cta__title">Talk to Clara</p>
-          <p className="clara-hero-cta__sub">Your caring companion — tap to speak</p>
-        </div>
-        <span className="clara-hero-cta__arrow"><StudioIcon name="clara" size={22} /></span>
-      </button>
-
-      <button
-        type="button"
-        className="memory-recap-cta tap-feedback"
-        onClick={onMemoryRecap}
-      >
-        <StudioIcon name="heart" size={26} />
-        <div>
-          <p className="memory-recap-cta__title">Family Memory Recap</p>
-          <p className="memory-recap-cta__sub">Shuffle through photos of Susan, Robert &amp; cherished moments</p>
-        </div>
-      </button>
+        {caregiverName && (
+          <a href={`tel:${caregiverPhone ?? '+15555550100'}`} className="home-hero-slim__call tap-feedback" aria-label={`Call ${caregiverName}`}>
+            <StudioIcon name="user" size={18} />
+          </a>
+        )}
+      </header>
 
       {dueMeds.length > 0 && (
-        <button
-          type="button"
-          className="med-due-banner tap-feedback"
-          onClick={() => onNavigate('meds')}
-        >
-          <StudioIcon name="meds" size={22} />
-          <div className="med-due-banner__body">
-            <p className="med-due-banner__title">
-              {dueMeds.length === 1
-                ? `Time for ${dueMeds[0].name}`
-                : `${dueMeds.length} medications due now`}
-            </p>
-            <p className="med-due-banner__text">
-              {dueMeds.map((m) => `${m.name} (${m.dosage})`).join(' · ')}
-            </p>
-          </div>
-          <span className="med-due-banner__action">Take</span>
+        <button type="button" className="home-alert-strip home-alert-strip--meds tap-feedback" onClick={() => onNavigate('meds')}>
+          <StudioIcon name="meds" size={18} />
+          <span>{dueMeds.length === 1 ? `${dueMeds[0].name} due now` : `${dueMeds.length} meds due`}</span>
         </button>
       )}
 
       {acseScore < 75 && (
-        <div className={`wellness-banner ${acseScore < 50 ? 'wellness-banner--low' : ''}`}>
-          <StudioIcon name={acseScore < 50 ? 'alert' : 'moderate'} size={20} />
-          <div>
-            <p className="wellness-banner__title">
-              {acseScore < 50 ? 'Take a moment to rest' : 'Go at your own pace'}
-            </p>
-            <p className="wellness-banner__text">
-              {acseScore < 50
-                ? 'Comfort mode can help you feel grounded.'
-                : 'Tap Score to see how you are doing today.'}
-            </p>
+        <button type="button" className={`home-alert-strip home-alert-strip--wellness tap-feedback ${acseScore < 50 ? 'home-alert-strip--low' : ''}`} onClick={() => onNavigate('stability')}>
+          <StudioIcon name={acseScore < 50 ? 'alert' : 'moderate'} size={18} />
+          <span>{acseScore < 50 ? 'Take a moment to rest' : 'Go at your own pace'}</span>
+        </button>
+      )}
+
+      <div className="home-widgets">
+        <button type="button" className="home-widget home-widget--memory tap-feedback" onClick={onMemoryRecap} aria-label="Family memory recap">
+          <img src={memoryPhotoUrl('garden')} alt="" className="home-widget__photo" />
+          <div className="home-widget__overlay">
+            <StudioIcon name="heart" size={22} />
+            <span className="home-widget__label">Memories</span>
           </div>
-          <button
-            type="button"
-            className="wellness-banner__action tap-feedback"
-            onClick={() => onNavigate('stability')}
-          >
-            View
-          </button>
-        </div>
-      )}
+        </button>
 
-      {caregiverName && (
-        <a
-          href={`tel:${caregiverPhone ?? '+15555550100'}`}
-          className="caregiver-chip tap-feedback"
-        >
-          <StudioIcon name="user" size={18} />
-          <span>Call {caregiverName}</span>
-        </a>
-      )}
+        <button type="button" className="home-widget home-widget--clara tap-feedback" onClick={() => onNavigate('voice')}>
+          <img src={CLARA_PORTRAIT} alt="" className="home-widget__photo home-widget__photo--round" />
+          <div className="home-widget__overlay home-widget__overlay--clara">
+            <span className="home-widget__label">Clara</span>
+            <span className="home-widget__sub">Tap to talk</span>
+          </div>
+        </button>
 
-      <button type="button" className="home-more-toggle tap-feedback" onClick={onToggleMore} aria-expanded={moreOpen}>
-        <StudioIcon name={moreOpen ? 'close' : 'add'} size={18} />
-        <span>{moreOpen ? 'Hide support tools' : 'More support — threads, routines, faces'}</span>
+        <button type="button" className="home-widget home-widget--tile tap-feedback" onClick={() => onNavigate('mind')}>
+          <StudioIcon name="brain" size={28} />
+          <span className="home-widget__label">Mind games</span>
+        </button>
+
+        <button type="button" className="home-widget home-widget--tile tap-feedback" onClick={() => onNavigate('sleep')}>
+          <StudioIcon name="moon" size={28} />
+          <span className="home-widget__label">Sleep</span>
+        </button>
+
+        <button type="button" className="home-widget home-widget--tile tap-feedback" onClick={() => onNavigate('meds')}>
+          <StudioIcon name="meds" size={28} />
+          <span className="home-widget__label">Meds</span>
+        </button>
+
+        <button type="button" className="home-widget home-widget--tile tap-feedback" onClick={() => onNavigate('events')}>
+          <StudioIcon name="events" size={28} />
+          <span className="home-widget__label">Today</span>
+        </button>
+      </div>
+
+      <div className="home-status-cards">
+        <WhereAmICard />
+        <StateReconCard />
+      </div>
+
+      <button type="button" className="home-more-toggle home-more-toggle--slim tap-feedback" onClick={onToggleMore} aria-expanded={moreOpen}>
+        <StudioIcon name={moreOpen ? 'close' : 'add'} size={16} />
+        <span>{moreOpen ? 'Hide extras' : 'Routines & support'}</span>
       </button>
 
       {moreOpen && (

@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   dailyWord,
+  isValidGuess,
   scoreGuess,
-  WORDLE_GUESSES,
   type LetterState,
 } from '../../lib/games/wordList';
 
@@ -24,7 +24,15 @@ export default function WordleGame({ onComplete }: WordleGameProps) {
   const [current, setCurrent] = useState('');
   const [status, setStatus] = useState<'playing' | 'won' | 'lost'>('playing');
   const [shake, setShake] = useState(false);
+  const [toast, setToast] = useState('');
   const [keyStates, setKeyStates] = useState<Record<string, LetterState>>({});
+  const guessesRef = useRef(guesses);
+  guessesRef.current = guesses;
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 1800);
+  };
 
   const updateKeyStates = useCallback((guess: string, scores: LetterState[]) => {
     setKeyStates((prev) => {
@@ -44,58 +52,71 @@ export default function WordleGame({ onComplete }: WordleGameProps) {
   }, []);
 
   const submit = useCallback(() => {
-    if (current.length !== 5) {
+    if (status !== 'playing') return;
+
+    const word = current.trim().toUpperCase();
+    if (word.length !== 5) {
       setShake(true);
+      showToast('Need 5 letters');
       setTimeout(() => setShake(false), 500);
       return;
     }
-    if (!WORDLE_GUESSES.includes(current)) {
+    if (!isValidGuess(word)) {
       setShake(true);
+      showToast('Letters only');
       setTimeout(() => setShake(false), 500);
       return;
     }
-    const scores = scoreGuess(current, answer);
-    updateKeyStates(current, scores);
-    const next = [...guesses, current];
-    setGuesses(next);
+
+    const scores = scoreGuess(word, answer);
+    updateKeyStates(word, scores);
+    const nextGuesses = [...guessesRef.current, word];
+    setGuesses(nextGuesses);
     setCurrent('');
-    if (current === answer) {
+
+    if (word === answer) {
       setStatus('won');
       onComplete?.();
-    } else if (next.length >= ROWS) {
+    } else if (nextGuesses.length >= ROWS) {
       setStatus('lost');
     }
-  }, [current, answer, guesses, updateKeyStates, onComplete]);
+  }, [current, answer, status, updateKeyStates, onComplete]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (status !== 'playing') return;
-      if (e.key === 'Enter') submit();
-      else if (e.key === 'Backspace') setCurrent((c) => c.slice(0, -1));
-      else if (/^[a-zA-Z]$/.test(e.key) && current.length < 5) {
-        setCurrent((c) => (c + e.key.toUpperCase()).slice(0, 5));
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submit();
+      } else if (e.key === 'Backspace') {
+        setCurrent((c) => c.slice(0, -1));
+      } else if (/^[a-zA-Z]$/.test(e.key)) {
+        setCurrent((c) => (c.length < 5 ? c + e.key.toUpperCase() : c));
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [current, status, submit]);
+  }, [status, submit]);
+
+  const activeRow = guesses.length;
 
   const rows = Array.from({ length: ROWS }, (_, i) => {
-    const guess = guesses[i] ?? (i === guesses.length ? current : '');
+    const guess = guesses[i] ?? (i === activeRow ? current : '');
     const scores = guesses[i] ? scoreGuess(guesses[i], answer) : null;
-    return { guess, scores, active: i === guesses.length };
+    return { guess, scores, active: i === activeRow };
   });
 
   return (
     <div className="wordle-game">
       <p className="wordle-game__hint">Guess the 5-letter word in {ROWS} tries</p>
+      {toast && <p className="wordle-game__toast" role="status">{toast}</p>}
 
       <div className={`wordle-board ${shake ? 'wordle-board--shake' : ''}`}>
         {rows.map((row, ri) => (
           <div key={ri} className="wordle-board__row">
             {Array.from({ length: COLS }, (_, ci) => {
               const letter = row.guess[ci] ?? '';
-              const state = row.scores?.[ci] ?? (letter ? 'empty' : 'empty');
+              const state = row.scores?.[ci] ?? 'empty';
               const filled = !!letter;
               const reveal = !!row.scores;
               return (
@@ -130,7 +151,7 @@ export default function WordleGame({ onComplete }: WordleGameProps) {
                   if (status !== 'playing') return;
                   if (key === 'ENTER') submit();
                   else if (key === '⌫') setCurrent((c) => c.slice(0, -1));
-                  else if (current.length < 5) setCurrent((c) => c + key);
+                  else setCurrent((c) => (c.length < 5 ? c + key : c));
                 }}
               >
                 {key}

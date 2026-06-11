@@ -2,8 +2,11 @@ import { ELEVENLABS_API_KEY } from '../env';
 import { proxyPostBlob, usesApiProxy, warnDirectApiKeys } from './apiClient';
 
 const VOICE_ID = 'EXAVITQu4vr4xnSDxMaL';
+/** Jessica — warm, natural American voice for Clara */
+const CLARA_VOICE_ID = 'cgSgspJ2msm6clMCkdW9';
 const ELEVENLABS_BASE = 'https://api.elevenlabs.io/v1';
 const MODEL_IDS = ['eleven_turbo_v2_5', 'eleven_flash_v2_5', 'eleven_multilingual_v2'];
+const CLARA_MODEL_IDS = ['eleven_multilingual_v2', 'eleven_turbo_v2_5', 'eleven_flash_v2_5'];
 
 let currentAudio: HTMLAudioElement | null = null;
 let audioUnlocked = false;
@@ -15,6 +18,8 @@ let speakChain: Promise<void> = Promise.resolve();
 export interface SpeakOptions {
   /** Softer, more affectionate delivery for memory recap */
   warm?: boolean;
+  /** Clara companion — warmest, slowest, most comforting delivery */
+  clara?: boolean;
 }
 
 export function isElevenLabsConfigured(): boolean {
@@ -116,8 +121,9 @@ async function speakElevenLabs(text: string, gen: number, options?: SpeakOptions
   warnDirectApiKeys();
 
   let lastError: Error | null = null;
+  const models = options?.clara ? CLARA_MODEL_IDS : MODEL_IDS;
 
-  for (const modelId of MODEL_IDS) {
+  for (const modelId of models) {
     if (gen !== speakGeneration) return;
     try {
       const blob = await fetchElevenLabsAudio(text, modelId, options);
@@ -133,19 +139,21 @@ async function speakElevenLabs(text: string, gen: number, options?: SpeakOptions
 }
 
 async function fetchElevenLabsAudio(text: string, modelId: string, options?: SpeakOptions): Promise<Blob> {
+  const clara = options?.clara ?? false;
   const warm = options?.warm ?? false;
-  const payload = {
-    text,
-    model_id: modelId,
-    voice_settings: warm
+  const voiceId = clara ? CLARA_VOICE_ID : VOICE_ID;
+  const voice_settings = clara
+    ? { stability: 0.38, similarity_boost: 0.92, style: 0.68, use_speaker_boost: true }
+    : warm
       ? { stability: 0.42, similarity_boost: 0.88, style: 0.55, use_speaker_boost: true }
-      : { stability: 0.55, similarity_boost: 0.8, style: 0.25, use_speaker_boost: true },
-  };
+      : { stability: 0.55, similarity_boost: 0.8, style: 0.25, use_speaker_boost: true };
+
+  const payload = { text, model_id: modelId, voice_settings };
 
   if (usesApiProxy()) {
     try {
       const blob = await proxyPostBlob('/api/elevenlabs/tts', {
-        voiceId: VOICE_ID,
+        voiceId,
         ...payload,
       });
       if (!blob.size) throw new Error('Proxy returned empty audio');
@@ -156,7 +164,7 @@ async function fetchElevenLabsAudio(text: string, modelId: string, options?: Spe
     }
   }
 
-  const res = await fetch(`${ELEVENLABS_BASE}/text-to-speech/${VOICE_ID}`, {
+  const res = await fetch(`${ELEVENLABS_BASE}/text-to-speech/${voiceId}`, {
     method: 'POST',
     headers: {
       'xi-api-key': ELEVENLABS_API_KEY,
@@ -250,8 +258,8 @@ async function speakBrowser(text: string, gen: number, options?: SpeakOptions): 
     }
 
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = options?.warm ? 0.82 : 0.9;
-    utterance.pitch = options?.warm ? 1.12 : 1.05;
+    utterance.rate = options?.clara ? 0.76 : options?.warm ? 0.82 : 0.9;
+    utterance.pitch = options?.clara ? 1.06 : options?.warm ? 1.12 : 1.05;
     utterance.volume = 1;
     utterance.lang = 'en-US';
 

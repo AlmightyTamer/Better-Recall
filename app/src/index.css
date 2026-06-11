@@ -2189,13 +2189,22 @@ html, body, #root {
   inset: 0;
   overflow: hidden;
   border-radius: 0 0 28px 28px;
-  background:
-    linear-gradient(165deg, rgba(235, 245, 255, 0.95) 0%, rgba(200, 225, 248, 0.88) 45%, rgba(180, 210, 240, 0.82) 100%);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #c8dff5;
   pointer-events: none;
 }
-[data-theme="dark"] .clara-room__backdrop {
+.clara-room__backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
   background:
-    linear-gradient(165deg, rgba(20, 35, 58, 0.98) 0%, rgba(30, 55, 90, 0.92) 50%, rgba(25, 45, 75, 0.95) 100%);
+    linear-gradient(180deg, rgba(255, 252, 248, 0.72) 0%, rgba(235, 245, 255, 0.88) 40%, rgba(200, 225, 248, 0.92) 100%);
+}
+[data-theme="dark"] .clara-room__backdrop::after {
+  background:
+    linear-gradient(180deg, rgba(15, 25, 42, 0.75) 0%, rgba(20, 35, 58, 0.9) 50%, rgba(25, 45, 75, 0.95) 100%);
 }
 .clara-room__glow {
   position: absolute;
@@ -4224,7 +4233,98 @@ html, body, #root {
   gap: 8px;
 }
 
-/* ── Home simplification ─────────────────────────────────────── */
+/* ── Home — streamlined widgets ──────────────────────────────── */
+.home-hero-slim {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 4px 2px 0;
+}
+.home-hero-slim__text { flex: 1; min-width: 0; }
+.home-hero-slim__call {
+  width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--studio-card-bg); border: 1.5px solid var(--studio-border);
+  color: var(--fm-blue-deep); text-decoration: none;
+  box-shadow: 0 4px 12px var(--studio-shadow);
+}
+.home-alert-strip {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 10px 14px; margin-bottom: 10px; border-radius: 14px;
+  border: none; font-size: 14px; font-weight: 600; cursor: pointer; text-align: left;
+}
+.home-alert-strip--meds {
+  background: linear-gradient(135deg, rgba(74, 144, 217, 0.15), rgba(74, 144, 217, 0.08));
+  color: var(--fm-blue-deep); border: 1px solid rgba(74, 144, 217, 0.35);
+}
+.home-alert-strip--wellness {
+  background: rgba(245, 158, 11, 0.12); color: #B45309;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+.home-alert-strip--low { background: rgba(239, 68, 68, 0.1); color: #B91C1C; border-color: rgba(239, 68, 68, 0.3); }
+
+.home-widgets {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.home-widget {
+  position: relative; border: none; cursor: pointer; overflow: hidden;
+  border-radius: 20px; padding: 0; text-align: left;
+  background: var(--studio-card-bg);
+  border: 1.5px solid var(--studio-border);
+  box-shadow: 0 6px 20px var(--studio-shadow);
+  transition: transform 0.15s ease;
+}
+.home-widget:active { transform: scale(0.98); }
+.home-widget--memory {
+  grid-row: span 2; aspect-ratio: 1;
+  border: none; box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+}
+.home-widget--clara {
+  min-height: 100px;
+  background: linear-gradient(135deg, var(--fm-blue-deep), var(--fm-blue));
+  border: none;
+}
+.home-widget--tile {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; padding: 16px 10px; min-height: 88px;
+  color: var(--fm-blue-deep);
+}
+.home-widget__photo {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+}
+.home-widget__photo--round {
+  position: relative; width: 52px; height: 52px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.9); flex-shrink: 0;
+  object-fit: cover;
+}
+.home-widget--clara {
+  display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+  color: #fff;
+}
+.home-widget__overlay {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+  padding: 14px; gap: 4px;
+  background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.55) 100%);
+  color: #fff;
+}
+.home-widget__overlay--clara {
+  position: static; flex: 1; background: none; align-items: flex-start; padding: 0;
+}
+.home-widget__label { font-size: 15px; font-weight: 700; line-height: 1.2; }
+.home-widget__sub { font-size: 12px; opacity: 0.9; }
+.home-widget--tile .home-widget__label { font-size: 13px; text-align: center; color: var(--studio-text); }
+.home-status-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.home-more-toggle--slim {
+  padding: 10px 14px; font-size: 14px; margin-bottom: 10px;
+}
+
+/* ── Home simplification (legacy) ────────────────────────────── */
 .clara-hero-cta {
   display: flex;
   align-items: center;
@@ -4784,7 +4884,15 @@ html, body, #root {
 .game-modal__body { padding: 16px 18px 24px; overflow-y: auto; flex: 1; }
 
 /* ── Wordle ───────────────────────────────────────────────────────────────── */
-.wordle-game__hint { text-align: center; font-size: 14px; color: var(--studio-text-muted); margin: 0 0 14px; }
+.wordle-game__hint { text-align: center; font-size: 14px; color: var(--studio-text-muted); margin: 0 0 8px; }
+.wordle-game__toast {
+  text-align: center; font-size: 13px; font-weight: 600; color: var(--fm-yellow-deep);
+  margin: 0 0 8px; min-height: 18px;
+}
+.connections-game__toast {
+  text-align: center; font-size: 13px; font-weight: 600; color: #EF4444;
+  margin: 0 0 8px; min-height: 18px;
+}
 .wordle-board { display: flex; flex-direction: column; gap: 6px; align-items: center; margin-bottom: 16px; }
 .wordle-board--shake { animation: wordle-shake 0.5s ease; }
 @keyframes wordle-shake {

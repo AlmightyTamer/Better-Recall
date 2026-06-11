@@ -6,20 +6,12 @@ export const WORDLE_WORDS = [
   'OCEAN', 'PAINT', 'PEACH', 'PLANT', 'QUIET', 'RADIO', 'RIVER', 'SHINE',
   'SLEEP', 'SPARK', 'STORY', 'SUNNY', 'TABLE', 'TULIP', 'WATER', 'WHEEL',
   'WOMAN', 'YOUTH', 'ANGEL', 'BEACH', 'BERRY', 'BIRDS', 'BLOSS', 'CANDY',
-  'CARES', 'CHARM', 'CHEER', 'CROWN', 'DAISY', 'FAITH', 'FAMILY', 'FLAME',
+  'CARES', 'CHARM', 'CHEER', 'CROWN', 'DAISY', 'FAITH', 'FLAME', 'FLOWER',
 ].filter((w) => w.length === 5);
 
-export const WORDLE_GUESSES = [
-  ...WORDLE_WORDS,
-  'ABOUT', 'AFTER', 'AGAIN', 'BEING', 'COULD', 'EVERY', 'GREAT', 'LITTLE',
-  'NEVER', 'OTHER', 'PLACE', 'RIGHT', 'SHALL', 'STILL', 'THEIR', 'THERE',
-  'THING', 'THINK', 'THREE', 'UNDER', 'WHERE', 'WHICH', 'WHILE', 'WORLD',
-  'WOULD', 'WRITE', 'YEARS', 'ALONG', 'BEGAN', 'BENCH', 'BIRTH', 'BREAK',
-  'BRING', 'BUILD', 'CARRY', 'CAUSE', 'CHILD', 'CLASS', 'CLOSE', 'COLOR',
-  'COMES', 'COVER', 'CROSS', 'DAILY', 'DOING', 'DOORS', 'EARLY', 'ENTER',
-  'FIELD', 'FINAL', 'FIRST', 'FLOOR', 'FOCUS', 'FORCE', 'FOUND', 'FRAME',
-  'FRONT', 'GIVEN', 'GOING', 'GROUP', 'GUESS', 'HANDS', 'HAPPY', 'HORSE',
-];
+export function isValidGuess(word: string): boolean {
+  return /^[A-Za-z]{5}$/.test(word);
+}
 
 export function dailyWord(date = new Date()): string {
   const key = date.toISOString().slice(0, 10);

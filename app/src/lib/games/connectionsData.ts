@@ -8,20 +8,20 @@ export const CONNECTIONS_PUZZLES: ConnectionGroup[][] = [
   [
     { category: 'Things in Margaret\'s garden', words: ['ROSES', 'TULIPS', 'HERBS', 'BENCH'], difficulty: 1 },
     { category: 'Sunday dinner foods', words: ['BREAD', 'SALAD', 'PIE', 'SOUP'], difficulty: 2 },
-    { category: 'Family members', words: ['SUSAN', 'ROBERT', 'MARGARET', 'LILY'], difficulty: 3 },
-    { category: 'Maple Lane rooms', words: ['PORCH', 'KITCHEN', 'BEDROOM', 'GARDEN'], difficulty: 4 },
+    { category: 'Family members', words: ['SUSAN', 'ROBERT', 'LILY', 'MOM'], difficulty: 3 },
+    { category: 'Rooms at Maple Lane', words: ['PORCH', 'DEN', 'HALL', 'YARD'], difficulty: 4 },
   ],
   [
     { category: 'Morning routine', words: ['BRUSH', 'WASH', 'DRESS', 'EAT'], difficulty: 1 },
     { category: 'Chess pieces', words: ['KING', 'QUEEN', 'ROOK', 'PAWN'], difficulty: 2 },
-    { category: 'Seasons', words: ['SPRING', 'SUMMER', 'AUTUMN', 'WINTER'], difficulty: 3 },
-    { category: 'Types of memory', words: ['EPISODIC', 'SEMANTIC', 'WORKING', 'PROCEDURAL'], difficulty: 4 },
+    { category: 'Seasons', words: ['SPRING', 'SUMMER', 'FALL', 'WINTER'], difficulty: 3 },
+    { category: 'Feelings', words: ['LOVE', 'JOY', 'CALM', 'HOPE'], difficulty: 4 },
   ],
   [
     { category: 'Colors in the garden', words: ['RED', 'PINK', 'GOLD', 'GREEN'], difficulty: 1 },
     { category: 'Kitchen items', words: ['MUG', 'POT', 'PAN', 'BOWL'], difficulty: 2 },
     { category: 'Porch activities', words: ['READ', 'CHAT', 'REST', 'WATCH'], difficulty: 3 },
-    { category: 'Medication times', words: ['MORNING', 'NOON', 'EVENING', 'NIGHT'], difficulty: 4 },
+    { category: 'Times of day', words: ['DAWN', 'NOON', 'DUSK', 'NIGHT'], difficulty: 4 },
   ],
 ];
 

@@ -4,7 +4,7 @@ import { useACSE } from '../hooks/useACSE';
 import { claraChat } from '../services/groq';
 import { useAppStore } from '../store/appStore';
 import { detectLoneliness } from '../lib/memoryRecap';
-import { CLARA_PORTRAIT, CLARA_TAGLINE } from '../lib/clara';
+import { CLARA_BACKGROUND, CLARA_PORTRAIT, CLARA_TAGLINE } from '../lib/clara';
 import { db, type User } from '../db/db';
 import { speak, stopSpeaking, unlockAudioPlayback } from '../services/elevenlabs';
 import StudioIcon from './StudioIcon';
@@ -101,7 +101,7 @@ export default function VoiceAgent() {
     setState('speaking');
 
     try {
-      await speak(response);
+      await speak(response, { clara: true });
     } catch (err) {
       console.error(err);
       setError('Voice unavailable — you can still read my reply above.');
@@ -176,7 +176,11 @@ export default function VoiceAgent() {
 
   return (
     <div className="clara-room">
-      <div className="clara-room__backdrop" aria-hidden>
+      <div
+        className="clara-room__backdrop"
+        aria-hidden
+        style={{ backgroundImage: `url(${CLARA_BACKGROUND})` }}
+      >
         <div className="clara-room__glow clara-room__glow--1" />
         <div className="clara-room__glow clara-room__glow--2" />
         <div className="clara-room__glow clara-room__glow--3" />

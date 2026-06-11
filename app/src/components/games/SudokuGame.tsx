@@ -1,8 +1,8 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  computeErrors,
   dailyPuzzle,
   isComplete,
-  isValidPlacement,
   type Grid,
 } from '../../lib/games/sudokuLogic';
 
@@ -15,30 +15,38 @@ export default function SudokuGame({ onComplete }: SudokuGameProps) {
   const fixed = useMemo(() => initial.map((row) => row.map((v) => v !== 0)), [initial]);
   const [grid, setGrid] = useState<Grid>(() => initial.map((row) => [...row]));
   const [selected, setSelected] = useState<{ r: number; c: number } | null>(null);
-  const [errors, setErrors] = useState<Set<string>>(new Set());
+  const [errors, setErrors] = useState<Set<string>>(() => new Set());
   const [won, setWon] = useState(false);
+  const [hintsUsed, setHintsUsed] = useState(0);
+
+  const checkWin = useCallback((next: Grid, err: Set<string>) => {
+    if (isComplete(next) && err.size === 0) {
+      setWon(true);
+      onComplete?.();
+    }
+  }, [onComplete]);
 
   const setCell = useCallback((r: number, c: number, val: number) => {
     if (fixed[r][c] || won) return;
-    setGrid((g) => {
-      const next = g.map((row) => [...row]);
+    setGrid((prev) => {
+      const next = prev.map((row) => [...row]);
       next[r][c] = val;
-      const err = new Set<string>();
-      for (let rr = 0; rr < 9; rr++) {
-        for (let cc = 0; cc < 9; cc++) {
-          if (next[rr][cc] !== 0 && !isValidPlacement(next, rr, cc, next[rr][cc])) {
-            err.add(`${rr}-${cc}`);
-          }
-        }
-      }
+      const err = computeErrors(next);
       setErrors(err);
-      if (isComplete(next) && err.size === 0) {
-        setWon(true);
-        onComplete?.();
-      }
+      checkWin(next, err);
       return next;
     });
-  }, [fixed, won, onComplete]);
+  }, [fixed, won, checkWin]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (won || !selected || fixed[selected.r][selected.c]) return;
+      if (/^[1-9]$/.test(e.key)) setCell(selected.r, selected.c, Number(e.key));
+      if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') setCell(selected.r, selected.c, 0);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [selected, fixed, won, setCell]);
 
   const highlight = useMemo(() => {
     if (!selected) return new Set<string>();
@@ -57,6 +65,12 @@ export default function SudokuGame({ onComplete }: SudokuGameProps) {
     }
     return s;
   }, [selected, grid]);
+
+  const useHint = () => {
+    if (!selected || fixed[selected.r][selected.c] || won || hintsUsed >= 3) return;
+    setHintsUsed((h) => h + 1);
+    setCell(selected.r, selected.c, solution[selected.r][selected.c]);
+  };
 
   return (
     <div className="sudoku-game">
@@ -77,7 +91,6 @@ export default function SudokuGame({ onComplete }: SudokuGameProps) {
                   type="button"
                   className={`sudoku-cell ${isFixed ? 'sudoku-cell--fixed' : ''} ${isSelected ? 'sudoku-cell--selected' : ''} ${isHl ? 'sudoku-cell--highlight' : ''} ${isError ? 'sudoku-cell--error' : ''} ${(c + 1) % 3 === 0 && c < 8 ? 'sudoku-cell--border-r' : ''} ${(r + 1) % 3 === 0 && r < 8 ? 'sudoku-cell--border-b' : ''}`}
                   onClick={() => setSelected({ r, c })}
-                  disabled={isFixed}
                 >
                   {val || ''}
                 </button>
@@ -111,16 +124,16 @@ export default function SudokuGame({ onComplete }: SudokuGameProps) {
 
       {won && <p className="sudoku-game__win">Puzzle complete — wonderful work!</p>}
 
-      <button
-        type="button"
-        className="studio-btn studio-btn--ghost tap-feedback sudoku-game__hint-btn"
-        onClick={() => {
-          if (!selected || fixed[selected.r][selected.c]) return;
-          setCell(selected.r, selected.c, solution[selected.r][selected.c]);
-        }}
-      >
-        Hint (one cell)
-      </button>
+      {!won && (
+        <button
+          type="button"
+          className="studio-btn studio-btn--ghost tap-feedback sudoku-game__hint-btn"
+          disabled={hintsUsed >= 3}
+          onClick={useHint}
+        >
+          Hint ({3 - hintsUsed} left)
+        </button>
+      )}
     </div>
   );
 }

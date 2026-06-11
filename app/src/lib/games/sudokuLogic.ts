@@ -25,36 +25,32 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-/** Permute rows/cols within bands for variety while keeping validity */
-function transformSolution(seed: number): Grid {
+/** Valid Sudoku transforms: row permutations within bands + global digit remap */
+function transformSolution(): Grid {
   const g = cloneGrid(SOLUTION);
-  const rng = (n: number) => {
-    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-    return seed % n;
-  };
 
   for (let band = 0; band < 3; band++) {
-    const rows = [0, 1, 2].map((i) => band * 3 + i);
-    const perm = shuffle(rows);
-    const temp = perm.map((r) => [...g[r]]);
-    perm.forEach((r, i) => { g[r] = temp[i]; });
+    const rows = [band * 3, band * 3 + 1, band * 3 + 2];
+    const order = shuffle(rows);
+    const swapped = order.map((r) => [...g[r]]);
+    rows.forEach((r, i) => {
+      g[r] = swapped[i];
+    });
   }
 
-  for (let c = 0; c < 9; c++) {
-    const map = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-    for (let r = 0; r < 9; r++) g[r][c] = map[g[r][c] - 1];
+  const digitMap = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      g[r][c] = digitMap[g[r][c] - 1];
+    }
   }
 
-  void rng;
   return g;
 }
 
 export function dailyPuzzle(date = new Date()): { puzzle: Grid; solution: Grid } {
-  const key = date.toISOString().slice(0, 10);
-  let seed = 0;
-  for (let i = 0; i < key.length; i++) seed = seed * 31 + key.charCodeAt(i);
-
-  const solution = transformSolution(seed);
+  void date;
+  const solution = transformSolution();
   const puzzle = cloneGrid(solution);
 
   const cells = shuffle(
@@ -62,7 +58,7 @@ export function dailyPuzzle(date = new Date()): { puzzle: Grid; solution: Grid }
   );
 
   let removed = 0;
-  const target = 44;
+  const target = 42;
   for (const { r, c } of cells) {
     if (removed >= target) break;
     puzzle[r][c] = 0;
@@ -70,6 +66,18 @@ export function dailyPuzzle(date = new Date()): { puzzle: Grid; solution: Grid }
   }
 
   return { puzzle, solution };
+}
+
+export function computeErrors(grid: Grid): Set<string> {
+  const err = new Set<string>();
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      if (grid[r][c] !== 0 && !isValidPlacement(grid, r, c, grid[r][c])) {
+        err.add(`${r}-${c}`);
+      }
+    }
+  }
+  return err;
 }
 
 export function isValidPlacement(grid: Grid, row: number, col: number, val: number): boolean {
@@ -81,15 +89,6 @@ export function isValidPlacement(grid: Grid, row: number, col: number, val: numb
   for (let r = br; r < br + 3; r++) {
     for (let c = bc; c < bc + 3; c++) {
       if ((r !== row || c !== col) && grid[r][c] === val) return false;
-    }
-  }
-  return true;
-}
-
-export function gridsEqual(a: Grid, b: Grid): boolean {
-  for (let r = 0; r < 9; r++) {
-    for (let c = 0; c < 9; c++) {
-      if (a[r][c] !== b[r][c]) return false;
     }
   }
   return true;
