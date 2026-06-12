@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import StudioIcon from './StudioIcon';
 import { useAppStore } from '../store/appStore';
 
-type Phase = 'in' | 'hold' | 'out' | 'done';
+type Phase = 'in' | 'hold' | 'out' | 'rest' | 'done';
 
 interface BreathingCircleProps {
   onComplete?: () => void;
@@ -14,14 +14,15 @@ export default function BreathingCircle({ onComplete, cycles = 3 }: BreathingCir
   const isLight = theme === 'light';
   const [phase, setPhase] = useState<Phase>('in');
   const [cycleCount, setCycleCount] = useState(0);
-  const [secondsLeft, setSecondsLeft] = useState(4);
+  const [secondsLeft, setSecondsLeft] = useState(3);
   const [label, setLabel] = useState('Breathe In…');
 
   useEffect(() => {
     const sequence: { phase: Phase; duration: number; label: string }[] = [
-      { phase: 'in', duration: 4, label: 'Breathe In…' },
+      { phase: 'in',   duration: 3, label: 'Breathe In…' },
       { phase: 'hold', duration: 4, label: 'Hold…' },
-      { phase: 'out', duration: 4, label: 'Breathe Out…' },
+      { phase: 'out',  duration: 3, label: 'Breathe Out…' },
+      { phase: 'rest', duration: 4, label: 'Rest…' },
     ];
 
     let seqIdx = 0;
@@ -61,15 +62,17 @@ export default function BreathingCircle({ onComplete, cycles = 3 }: BreathingCir
   }, [cycles, onComplete]);
 
   const circleClass =
-    phase === 'in' ? 'breathing-in' :
+    phase === 'in'   ? 'breathing-in' :
     phase === 'hold' ? 'breathing-hold' :
-    phase === 'out' ? 'breathing-out' :
+    phase === 'out'  ? 'breathing-out' :
+    phase === 'rest' ? 'breathing-out' :
     '';
 
   const circleColor =
-    phase === 'in' ? (isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.18)') :
+    phase === 'in'   ? (isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.18)') :
     phase === 'hold' ? (isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.12)') :
-    phase === 'out' ? (isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.08)') :
+    phase === 'out'  ? (isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.08)') :
+    phase === 'rest' ? (isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.05)') :
     'rgba(16,185,129,0.2)';
 
   const borderColor = phase === 'done' ? '#10B981' : (isLight ? 'rgba(0,0,0,0.18)' : 'rgba(255,255,255,0.45)');
