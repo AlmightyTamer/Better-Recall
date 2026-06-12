@@ -1,21 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Recall" />
-  <meta name="theme-color" content="#080C14" />
-  <link rel="manifest" href="/recall/manifest.json" />
-  <link rel="apple-touch-icon" href="/recall/icons/icon-192.png" />
-  <link rel="icon" type="image/png" href="/recall/icons/icon-512.png" />
-  <title>Recall — Cognitive Care</title>
-  <script type="module" crossorigin src="/recall/assets/index-CYipw1LF.js"></script>
-  <link rel="stylesheet" crossorigin href="/recall/assets/index-DaUNBvtd.css">
-</head>
-<body>
-  <div id="root"></div>
-</body>
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="theme-color" content="#EBF5FF" />
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('recall-theme');
+          var m = document.querySelector('meta[name="theme-color"]');
+          if (t === 'dark') {
+            document.documentElement.dataset.theme = 'dark';
+            if (m) m.setAttribute('content', '#0A1628');
+          } else {
+            document.documentElement.dataset.theme = 'light';
+            if (m) m.setAttribute('content', '#EBF5FF');
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <meta name="description" content="Recall — dementia care companion with orientation, medication safety, emergency SOS, memory threads, daily routines, and caregiver monitoring." />
+    <title>Recall</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+    <link rel="icon" type="image/svg+xml" href="/recall/favicon.svg" />
+    <link rel="manifest" href="/recall/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/recall/favicon.svg" />
+    <script type="module" crossorigin src="/recall/assets/index-DAb-GcZt.js"></script>
+    <link rel="modulepreload" crossorigin href="/recall/assets/dexie-B5OhgzVo.js">
+    <link rel="modulepreload" crossorigin href="/recall/assets/recharts-AOkhjbGK.js">
+    <link rel="stylesheet" crossorigin href="/recall/assets/index-Dk2poVF3.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
 </html>

@@ -2339,28 +2339,7 @@ h1, h2, h3,
   display: flex;
   flex-direction: column;
 }
-.clara-room__backdrop {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  border-radius: 0 0 28px 28px;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-color: #c8dff5;
-  pointer-events: none;
-}
-.clara-room__backdrop::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(180deg, rgba(255, 252, 248, 0.72) 0%, rgba(235, 245, 255, 0.88) 40%, rgba(200, 225, 248, 0.92) 100%);
-}
-[data-theme="dark"] .clara-room__backdrop::after {
-  background:
-    linear-gradient(180deg, rgba(15, 25, 42, 0.75) 0%, rgba(20, 35, 58, 0.9) 50%, rgba(25, 45, 75, 0.95) 100%);
-}
+.clara-room__backdrop { display: none; }
 .clara-room__glow {
   position: absolute;
   border-radius: 50%;
@@ -2401,9 +2380,6 @@ h1, h2, h3,
 }
 
 /* ── Clara seamless layout + flower pulse indicator ── */
-.clara-room--seamless .clara-room__backdrop::after {
-  background: linear-gradient(180deg, rgba(255, 252, 248, 0.55) 0%, rgba(235, 245, 255, 0.75) 50%, rgba(214, 235, 250, 0.85) 100%);
-}
 
 .clara-room__header--slim {
   padding: 10px 14px;
@@ -2413,12 +2389,14 @@ h1, h2, h3,
 }
 
 .clara-room__avatar-sm {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #fff;
-  box-shadow: 0 4px 14px rgba(74, 144, 217, 0.3);
+  background: var(--studio-accent-soft, rgba(255,45,85,0.12));
+  color: var(--studio-accent, #FF2D55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 

@@ -9,7 +9,6 @@ import {
   getTailoredResponse,
   type MemoryRecapReason,
 } from '../lib/claraIntents';
-import { CLARA_BACKGROUND, CLARA_PORTRAIT } from '../lib/clara';
 import { speak, stopSpeaking, unlockAudioPlayback } from '../services/elevenlabs';
 import StudioIcon from './StudioIcon';
 import ClaraFlowerPulse from './ClaraFlowerPulse';
@@ -221,15 +220,10 @@ export default function VoiceAgent() {
 
   return (
     <div className="clara-room clara-room--seamless">
-      <div
-        className="clara-room__backdrop"
-        aria-hidden
-        style={{ backgroundImage: `url(${CLARA_BACKGROUND})` }}
-      />
 
       <div className="clara-room__inner studio-scroll">
         <header className="clara-room__header clara-room__header--slim">
-          <img src={CLARA_PORTRAIT} alt="" className="clara-room__avatar-sm" />
+          <div className="clara-room__avatar-sm clara-room__avatar-icon"><StudioIcon name="clara" size={22} /></div>
           <div className="clara-room__intro">
             <h1 className="clara-room__name">Clara</h1>
             <span className={`clara-room__badge clara-room__badge--${state}`}>{statusLabel}</span>
