@@ -17,7 +17,7 @@ export default function StudioShell({
   footer,
 }: StudioShellProps) {
   return (
-    <div className="studio-screen studio-app dash-shell">
+    <div className="studio-screen studio-app dash-shell ios-shell">
       {header}
       <AnimatedPanel panelKey={contentKey ?? 'content'} className="studio-app-content">
         {children}
