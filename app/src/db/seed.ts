@@ -104,8 +104,40 @@ export async function purgeHaroldProfile(): Promise<void> {
   });
 }
 
+async function purgeDuplicates(): Promise<void> {
+  const users = await db.users.toArray();
+  const seen = new Map<string, number>();
+  for (const user of users) {
+    if (!user.id) continue;
+    const key = user.name.trim().toLowerCase();
+    if (seen.has(key)) {
+      // Keep the first; delete duplicates
+      const dupId = user.id;
+      await db.transaction('rw', [
+        db.users, db.events, db.medicationLogs, db.acseScores, db.supervisorAlerts,
+        db.memoryAnchors, db.emergencyContacts, db.routineTasks, db.familiarFaces, db.careJournal, db.sleepLogs,
+      ], async () => {
+        await db.events.where('userId').equals(dupId).delete();
+        await db.medicationLogs.where('userId').equals(dupId).delete();
+        await db.acseScores.where('userId').equals(dupId).delete();
+        await db.supervisorAlerts.where('userId').equals(dupId).delete();
+        await db.memoryAnchors.where('userId').equals(dupId).delete();
+        await db.emergencyContacts.where('userId').equals(dupId).delete();
+        await db.routineTasks.where('userId').equals(dupId).delete();
+        await db.familiarFaces.where('userId').equals(dupId).delete();
+        await db.sleepLogs.where('userId').equals(dupId).delete();
+        await db.careJournal.where('userId').equals(dupId).delete();
+        await db.users.delete(dupId);
+      });
+    } else {
+      seen.set(key, user.id);
+    }
+  }
+}
+
 export async function seedIfEmpty(): Promise<void> {
   await purgeHaroldProfile();
+  await purgeDuplicates();
 
   const userCount = await db.users.count();
   if (userCount >= 1) {
@@ -335,6 +367,16 @@ async function seedExtendedData(): Promise<void> {
       if (missing.length > 0) {
         await db.routineTasks.bulkAdd(missing.map((r) => ({ ...r, userId: user.id! })));
       }
+    }
+    // Migrate old medications to neurodegenerative drugs
+    if (user.name === 'Margaret' && user.medications?.some(m => m.name === 'Metformin' || m.name === 'Lisinopril')) {
+      await db.users.update(user.id, {
+        medications: [
+          { name: 'Donepezil', dosage: '10mg', schedule: ['8:00 AM'] },
+          { name: 'Levodopa/Carbidopa', dosage: '25-100mg', schedule: ['8:00 AM', '2:00 PM', '8:00 PM'] },
+          { name: 'Memantine', dosage: '5mg', schedule: ['8:00 PM'] },
+        ],
+      });
     }
   }
 }

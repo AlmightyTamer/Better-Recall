@@ -39,16 +39,15 @@ export default function LoadingScreen() {
   useEffect(() => {
     const timer = setTimeout(() => {
       const el = screenRef.current;
-      if (!el) {
-        setScreen('login');
-        return;
+      if (el) {
+        gsap.to(el, {
+          opacity: 0,
+          duration: duration(0.55),
+          ease: EASE.smooth,
+        });
       }
-      gsap.to(el, {
-        opacity: 0,
-        duration: duration(0.55),
-        ease: EASE.smooth,
-        onComplete: () => setScreen('login'),
-      });
+      // Use a separate timer so screen change never depends on GSAP onComplete
+      setTimeout(() => setScreen('login'), el ? duration(0.55) * 1000 + 50 : 0);
     }, 2400);
     return () => clearTimeout(timer);
   }, [setScreen]);
