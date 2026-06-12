@@ -49,9 +49,9 @@
   --studio-bg-deep: #E5E5EA;
   --studio-surface: rgba(255,255,255,1.0);
   --studio-surface-soft: rgba(255,255,255,0.85);
-  --studio-text: #000000;
-  --studio-text-muted: #8E8E93;
-  --studio-text-bright: #000000;
+  --studio-text: #1C1C1E;
+  --studio-text-muted: #48484A;
+  --studio-text-bright: #1C1C1E;
   --studio-accent: #FF2D55;
   --studio-accent-soft: rgba(255,45,85,0.10);
   --studio-border: rgba(60,60,67,0.12);
@@ -122,7 +122,7 @@ textarea {
   --studio-surface: rgba(44,44,46,1.0);
   --studio-surface-soft: rgba(58,58,60,0.9);
   --studio-text: #FFFFFF;
-  --studio-text-muted: #8E8E93;
+  --studio-text-muted: #AEAEB2;
   --studio-text-bright: #FFFFFF;
   --studio-accent: #FF375F;
   --studio-accent-soft: rgba(255,55,95,0.15);
@@ -759,8 +759,9 @@ h1, h2, h3,
   gap: 2px;
 }
 .studio-tab-bar--dense .studio-tab__label {
-  font-size: 10px;
-  letter-spacing: 0.02em;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 .studio-tab-bar--dense .studio-tab__icon svg {
   width: 20px;
@@ -915,7 +916,7 @@ h1, h2, h3,
 }
 
 .studio-stat-label {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--studio-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -3657,7 +3658,7 @@ html[data-easy-mode='true'] .home-widget__label { font-size: 16px; }
 }
 
 .sos-fab__label {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.05em;
 }
@@ -4671,7 +4672,7 @@ html[data-easy-mode='true'] .home-widget__label { font-size: 16px; }
 }
 
 .recall-cascade__eyebrow {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -4727,8 +4728,8 @@ html[data-easy-mode='true'] .home-widget__label { font-size: 16px; }
 }
 
 .recall-cascade__detail {
-  font-size: 9px;
-  color: rgba(255,255,255,0.7);
+  font-size: 11px;
+  color: rgba(255,255,255,0.85);
   margin-top: 2px;
   line-height: 1.2;
 }
@@ -4762,7 +4763,7 @@ html[data-easy-mode='true'] .home-widget__label { font-size: 16px; }
 }
 
 .golden-path__eyebrow {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -5340,7 +5341,7 @@ html[data-easy-mode='true'] .home-widget__label { font-size: 16px; }
   background: var(--studio-card-inset); border: 1px solid var(--studio-border);
 }
 .sleep-stat__value { display: block; font-size: 18px; font-weight: 700; color: var(--recall-lavender); }
-.sleep-stat__label { font-size: 11px; color: var(--studio-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.sleep-stat__label { font-size: 12px; font-weight: 600; color: var(--studio-text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
 .sleep-tracker__week { margin-top: 14px; }
 .sleep-tracker__week-label { font-size: 12px; color: var(--studio-text-muted); margin: 0 0 8px; }
 .sleep-week-chart { display: flex; align-items: flex-end; gap: 6px; height: 64px; }
@@ -5350,7 +5351,7 @@ html[data-easy-mode='true'] .home-widget__label { font-size: 16px; }
   background: linear-gradient(180deg, var(--recall-lavender) 0%, #6366f1 100%);
   min-height: 4px; transition: height 0.3s ease;
 }
-.sleep-week-bar__day { font-size: 10px; color: var(--studio-text-muted); margin-top: 4px; }
+.sleep-week-bar__day { font-size: 12px; font-weight: 500; color: var(--studio-text-muted); margin-top: 4px; }
 .sleep-tracker__form { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--studio-border); }
 .sleep-tracker__form-title { margin: 0 0 12px; font-size: 15px; font-weight: 600; }
 .sleep-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
@@ -5380,7 +5381,7 @@ html[data-easy-mode='true'] .home-widget__label { font-size: 16px; }
 }
 .sleep-clinical-metric__value { display: block; font-size: 22px; font-weight: 700; color: var(--recall-lavender); }
 .sleep-clinical-metric__label { font-size: 12px; color: var(--studio-text-muted); }
-.sleep-clinical-metric__target { display: block; font-size: 10px; color: var(--studio-text-muted); margin-top: 2px; opacity: 0.8; }
+.sleep-clinical-metric__target { display: block; font-size: 12px; color: var(--studio-text-muted); margin-top: 2px; }
 .sleep-clinical__badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
 .sleep-risk-badge, .sleep-trend-badge {
   padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 650;
@@ -5630,7 +5631,7 @@ body, html { background: var(--studio-bg) !important; font-family: -apple-system
 }
 .studio-tab--active { color: var(--studio-accent); }
 .studio-tab__icon { display: flex; align-items: center; justify-content: center; }
-.studio-tab__label { font-size: 10px; font-weight: 500; letter-spacing: 0.01em; }
+.studio-tab__label { font-size: 11px; font-weight: 600; letter-spacing: 0.01em; }
 
 /* ── iOS Hero ── */
 .dash-hero {
@@ -5720,7 +5721,7 @@ body, html { background: var(--studio-bg) !important; font-family: -apple-system
 }
 .home-widget__caption-text { display: flex; flex-direction: column; align-items: center; }
 .home-widget__label { font-size: 11px; font-weight: 500; color: var(--studio-text); }
-.home-widget__sub { font-size: 10px; color: var(--studio-text-muted); }
+.home-widget__sub { font-size: 12px; color: var(--studio-text-muted); }
 
 /* ── Status cards ── */
 .home-status-cards { display: flex; flex-direction: column; gap: 10px; padding: 0 16px 12px; }
@@ -5883,8 +5884,8 @@ body, html { background: var(--studio-bg) !important; font-family: -apple-system
 
 /* ── iOS section label ── */
 .ios-section-label {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--studio-text-muted);
@@ -5914,10 +5915,10 @@ body, html { background: var(--studio-bg) !important; font-family: -apple-system
   transition: transform 0.12s ease;
 }
 .metric-card:active { transform: scale(0.96); }
-.metric-card__label { font-size: 11px; font-weight: 500; color: var(--studio-text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
-.metric-card__value { font-size: 26px; font-weight: 700; line-height: 1; letter-spacing: -0.02em; margin-top: 2px; }
-.metric-card__denom { font-size: 16px; font-weight: 400; opacity: 0.55; }
-.metric-card__sub { font-size: 10px; color: var(--studio-text-muted); margin-top: 1px; }
+.metric-card__label { font-size: 12px; font-weight: 600; color: var(--studio-text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+.metric-card__value { font-size: 28px; font-weight: 700; line-height: 1; letter-spacing: -0.02em; margin-top: 2px; }
+.metric-card__denom { font-size: 17px; font-weight: 400; opacity: 0.75; }
+.metric-card__sub { font-size: 12px; color: var(--studio-text-muted); margin-top: 1px; }
 .metric-card__bar { width: 100%; height: 3px; background: rgba(0,0,0,0.07); border-radius: 99px; margin-top: 8px; overflow: hidden; }
 .metric-card__fill { height: 100%; border-radius: 99px; transition: width 0.8s ease; }
 
@@ -5982,7 +5983,7 @@ body, html { background: var(--studio-bg) !important; font-family: -apple-system
   box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 .sanctuary__now-playing__emoji { font-size: 28px; }
-.sanctuary__now-playing__label { font-size: 11px; color: var(--studio-text-muted); font-weight: 500; margin: 0; text-transform: uppercase; letter-spacing: 0.06em; }
+.sanctuary__now-playing__label { font-size: 12px; color: var(--studio-text-muted); font-weight: 600; margin: 0; text-transform: uppercase; letter-spacing: 0.05em; }
 .sanctuary__now-playing__name { font-size: 17px; font-weight: 700; margin: 2px 0 0; }
 .sanctuary__pulse {
   width: 10px; height: 10px; border-radius: 50%; margin-left: auto; flex-shrink: 0;
@@ -6020,8 +6021,8 @@ body, html { background: var(--studio-bg) !important; font-family: -apple-system
 .sanctuary__tile:active { transform: scale(0.97); }
 .sanctuary__tile__emoji { font-size: 26px; margin-bottom: 4px; }
 .sanctuary__tile__label { font-size: 14px; font-weight: 700; color: var(--studio-text); margin: 0; }
-.sanctuary__tile__desc { font-size: 11px; color: var(--studio-text-muted); margin: 0; }
-.sanctuary__tile__stop { font-size: 10px; font-weight: 700; color: var(--s-color); margin-top: 4px; letter-spacing: 0.04em; }
+.sanctuary__tile__desc { font-size: 12px; color: var(--studio-text-muted); margin: 0; }
+.sanctuary__tile__stop { font-size: 12px; font-weight: 700; color: var(--s-color); margin-top: 4px; letter-spacing: 0.02em; }
 .sanctuary__volume {
   display: flex;
   align-items: center;
