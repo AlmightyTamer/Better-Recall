@@ -74,7 +74,8 @@ function seedSleepLogs(userId: number, now: Date): Promise<void> {
       wakeTime: wake.toISOString(),
       quality,
       awakenings,
-      loggedBy: i % 2 === 0 ? 'patient' as const : 'caregiver' as const,
+      notes: 'Synced from Apple Watch via Apple Health',
+      loggedBy: 'apple_watch' as const,
     });
   }
   return db.sleepLogs.bulkAdd(logs).then(() => undefined);
@@ -366,6 +367,18 @@ async function seedExtendedData(): Promise<void> {
       const missing = DEFAULT_ROUTINES.filter((r) => !labels.has(r.label));
       if (missing.length > 0) {
         await db.routineTasks.bulkAdd(missing.map((r) => ({ ...r, userId: user.id! })));
+      }
+    }
+    // Auto-connect Apple Health for Margaret so sleep shows as watch-sourced
+    if (user.name === 'Margaret' && user.id) {
+      const ahKey = `recall_apple_health_${user.id}`;
+      const ahRaw = localStorage.getItem(ahKey);
+      if (!ahRaw || !JSON.parse(ahRaw).connected) {
+        localStorage.setItem(ahKey, JSON.stringify({
+          connected: true,
+          lastSyncAt: new Date().toISOString(),
+          deviceName: "Margaret's Apple Watch",
+        }));
       }
     }
     // Migrate old medications to neurodegenerative drugs

@@ -5,7 +5,6 @@ import { useAppStore } from '../store/appStore';
 import StudioIcon from './StudioIcon';
 import {
   analyzeSleep,
-  dateKey,
   formatSleepDuration,
   lastNightDate,
   nightMetrics,
@@ -13,7 +12,6 @@ import {
 } from '../lib/sleep';
 import {
   connectAppleHealth,
-  disconnectAppleHealth,
   getAppleHealthMeta,
   isAppleHealthConnected,
   syncAppleWatchSleep,
@@ -21,29 +19,20 @@ import {
 
 const SLEEP_TIPS = [
   'Try to go to bed around the same time each night.',
-  'Dim the lights on the porch an hour before bed.',
+  'Dim the lights an hour before bed.',
   'A warm cup of chamomile tea can help you wind down.',
   'If you wake up, take slow breaths — you are safe at home.',
 ];
 
 interface SleepTrackerProps {
-  /** Full-page sleep dashboard (dedicated tab) */
   dashboard?: boolean;
 }
 
 export default function SleepTracker({ dashboard = false }: SleepTrackerProps) {
   const { user } = useAppStore();
-  const [expanded, setExpanded] = useState(dashboard);
-  const [bedHour, setBedHour] = useState('22');
-  const [bedMin, setBedMin] = useState('00');
-  const [wakeHour, setWakeHour] = useState('07');
-  const [wakeMin, setWakeMin] = useState('00');
-  const [quality, setQuality] = useState<1 | 2 | 3 | 4 | 5>(4);
-  const [awakenings, setAwakenings] = useState(1);
-  const [saved, setSaved] = useState(false);
-  const [watchConnected, setWatchConnected] = useState(false);
   const [watchSyncing, setWatchSyncing] = useState(false);
   const [watchMeta, setWatchMeta] = useState(getAppleHealthMeta(user?.id ?? 0));
+  const [lastSynced, setLastSynced] = useState<string | null>(null);
 
   const logs = useLiveQuery(
     () => (user?.id ? db.sleepLogs.where('userId').equals(user.id).sortBy('date') : []),
@@ -55,73 +44,55 @@ export default function SleepTracker({ dashboard = false }: SleepTrackerProps) {
   const lastMetrics = lastNight ? nightMetrics(lastNight) : null;
   const firstName = user?.name?.split(' ')[0] ?? 'friend';
 
+  // Auto-connect and sync Apple Watch on mount
   useEffect(() => {
     if (!user?.id) return;
-    const connected = isAppleHealthConnected(user.id);
-    setWatchConnected(connected);
-    setWatchMeta(getAppleHealthMeta(user.id));
-    if (connected && dashboard) {
-      void syncAppleWatchSleep(user.id);
-    }
-  }, [user?.id, dashboard]);
+    const uid = user.id;
 
-  const handleConnectWatch = async () => {
-    if (!user?.id) return;
-    setWatchSyncing(true);
-    try {
-      const state = await connectAppleHealth(user.id);
-      setWatchConnected(true);
-      setWatchMeta(state);
-      await syncAppleWatchSleep(user.id);
-    } finally {
-      setWatchSyncing(false);
-    }
-  };
-
-  const handleSyncWatch = async () => {
-    if (!user?.id) return;
-    setWatchSyncing(true);
-    try {
-      await syncAppleWatchSleep(user.id);
-      setWatchMeta(getAppleHealthMeta(user.id));
-    } finally {
-      setWatchSyncing(false);
-    }
-  };
-
-  const handleDisconnectWatch = () => {
-    if (!user?.id) return;
-    disconnectAppleHealth(user.id);
-    setWatchConnected(false);
-    setWatchMeta({ connected: false });
-  };
-
-  const logSleep = async () => {
-    if (!user?.id) return;
-    const night = lastNightDate();
-    const bed = new Date(`${night}T${bedHour.padStart(2, '0')}:${bedMin.padStart(2, '0')}:00`);
-    const wake = new Date(`${dateKey()}T${wakeHour.padStart(2, '0')}:${wakeMin.padStart(2, '0')}:00`);
-
-    const existing = await db.sleepLogs.where('userId').equals(user.id).filter((l) => l.date === night).first();
-    const entry = {
-      userId: user.id,
-      date: night,
-      bedTime: bed.toISOString(),
-      wakeTime: wake.toISOString(),
-      quality,
-      awakenings,
-      loggedBy: 'patient' as const,
+    const autoConnect = async () => {
+      if (!isAppleHealthConnected(uid)) {
+        setWatchSyncing(true);
+        try {
+          const state = await connectAppleHealth(uid);
+          setWatchMeta(state);
+        } finally {
+          setWatchSyncing(false);
+        }
+      }
+      // Always sync on mount so data is fresh
+      setWatchSyncing(true);
+      try {
+        await syncAppleWatchSleep(uid);
+        const meta = getAppleHealthMeta(uid);
+        setWatchMeta(meta);
+        setLastSynced(meta.lastSyncAt ?? null);
+      } finally {
+        setWatchSyncing(false);
+      }
     };
 
-    if (existing?.id) await db.sleepLogs.update(existing.id, entry);
-    else await db.sleepLogs.add(entry);
+    void autoConnect();
+  }, [user?.id]);
 
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-    if (!dashboard) setExpanded(false);
+  const handleSync = async () => {
+    if (!user?.id) return;
+    setWatchSyncing(true);
+    try {
+      await syncAppleWatchSleep(user.id);
+      const meta = getAppleHealthMeta(user.id);
+      setWatchMeta(meta);
+      setLastSynced(meta.lastSyncAt ?? null);
+    } finally {
+      setWatchSyncing(false);
+    }
   };
 
   if (!user?.id) return null;
+
+  const syncedAt = lastSynced ?? watchMeta.lastSyncAt;
+  const syncedLabel = syncedAt
+    ? new Date(syncedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : null;
 
   return (
     <div className={dashboard ? 'sleep-dashboard' : undefined}>
@@ -133,11 +104,42 @@ export default function SleepTracker({ dashboard = false }: SleepTrackerProps) {
           <div>
             <h1 className="sleep-dashboard__title">{firstName}&apos;s sleep</h1>
             <p className="sleep-dashboard__sub">
-              Restful sleep helps memory, mood, and brain health. Log each morning so Susan can follow along.
+              Sleep data is automatically recorded by Apple Watch and synced via Apple Health.
             </p>
           </div>
         </header>
       )}
+
+      {/* Apple Watch status strip */}
+      <div className="sleep-watch-strip card">
+        <div className="sleep-watch-strip__icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="7" y="2" width="10" height="20" rx="3" stroke="currentColor" strokeWidth="1.8"/>
+            <rect x="9" y="5" width="6" height="11" rx="1.5" fill="currentColor" opacity="0.15"/>
+            <path d="M9 7h6M9 9h4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+            <path d="M7 6H5M7 18H5M17 6h2M17 18h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        </div>
+        <div className="sleep-watch-strip__body">
+          <p className="sleep-watch-strip__name">{watchMeta.deviceName ?? "Margaret's Apple Watch"}</p>
+          <p className="sleep-watch-strip__status">
+            {watchSyncing
+              ? 'Syncing from Apple Health…'
+              : syncedLabel
+                ? `Last synced at ${syncedLabel}`
+                : 'Connected via Apple Health'}
+          </p>
+        </div>
+        <button
+          type="button"
+          className="sleep-watch-strip__sync tap-feedback"
+          onClick={() => void handleSync()}
+          disabled={watchSyncing}
+          aria-label="Sync now"
+        >
+          <StudioIcon name="success" size={16} />
+        </button>
+      </div>
 
       <section className={`sleep-tracker card ${dashboard ? 'sleep-tracker--dashboard' : ''}`}>
         <div className="sleep-tracker__header">
@@ -149,17 +151,14 @@ export default function SleepTracker({ dashboard = false }: SleepTrackerProps) {
             <p className="sleep-tracker__sub">
               {lastMetrics
                 ? `${formatSleepDuration(lastMetrics.durationHours)} · ${qualityLabel(lastNight!.quality)} · ${lastMetrics.efficiency}% efficiency`
-                : 'Log how you slept last night'}
+                : watchSyncing ? 'Syncing from Apple Watch…' : 'Waiting for Apple Watch data'}
             </p>
           </div>
-          {!dashboard && (
-            <button
-              type="button"
-              className="studio-btn studio-btn--ghost tap-feedback sleep-tracker__log-btn"
-              onClick={() => setExpanded((v) => !v)}
-            >
-              {expanded ? 'Cancel' : lastNight ? 'Update' : 'Log'}
-            </button>
+          {lastNight?.loggedBy === 'apple_watch' && (
+            <span className="sleep-watch-badge">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+              Watch
+            </span>
           )}
         </div>
 
@@ -204,143 +203,10 @@ export default function SleepTracker({ dashboard = false }: SleepTrackerProps) {
             </div>
           </div>
         )}
-
-        {(expanded || dashboard) && (
-          <div className="sleep-tracker__form animate-fadeIn">
-            <p className="sleep-tracker__form-title">How did you sleep last night?</p>
-
-            <div className="sleep-form-row">
-              <label className="sleep-form-label">
-                Bedtime
-                <div className="sleep-time-inputs">
-                  <select className="studio-select" value={bedHour} onChange={(e) => setBedHour(e.target.value)}>
-                    {Array.from({ length: 24 }, (_, i) => (
-                      <option key={i} value={String(i)}>{String(i).padStart(2, '0')}</option>
-                    ))}
-                  </select>
-                  <span>:</span>
-                  <select className="studio-select" value={bedMin} onChange={(e) => setBedMin(e.target.value)}>
-                    {['00', '15', '30', '45'].map((m) => (
-                      <option key={m} value={m}>{m}</option>
-                    ))}
-                  </select>
-                </div>
-              </label>
-              <label className="sleep-form-label">
-                Wake time
-                <div className="sleep-time-inputs">
-                  <select className="studio-select" value={wakeHour} onChange={(e) => setWakeHour(e.target.value)}>
-                    {Array.from({ length: 24 }, (_, i) => (
-                      <option key={i} value={String(i)}>{String(i).padStart(2, '0')}</option>
-                    ))}
-                  </select>
-                  <span>:</span>
-                  <select className="studio-select" value={wakeMin} onChange={(e) => setWakeMin(e.target.value)}>
-                    {['00', '15', '30', '45'].map((m) => (
-                      <option key={m} value={m}>{m}</option>
-                    ))}
-                  </select>
-                </div>
-              </label>
-            </div>
-
-            <label className="sleep-form-label">
-              Sleep quality
-              <div className="sleep-quality-row">
-                {([1, 2, 3, 4, 5] as const).map((q) => (
-                  <button
-                    key={q}
-                    type="button"
-                    className={`sleep-quality-btn tap-feedback ${quality >= q ? 'sleep-quality-btn--on' : ''}`}
-                    onClick={() => setQuality(q)}
-                    aria-label={qualityLabel(q)}
-                  >
-                    <StudioIcon name="moon" size={18} />
-                  </button>
-                ))}
-              </div>
-            </label>
-
-            <label className="sleep-form-label">
-              Times woken up
-              <div className="sleep-awakenings">
-                {[0, 1, 2, 3, 4].map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    className={`studio-chip tap-feedback ${awakenings === n ? 'studio-chip--active' : ''}`}
-                    onClick={() => setAwakenings(n)}
-                  >
-                    {n === 4 ? '4+' : n}
-                  </button>
-                ))}
-              </div>
-            </label>
-
-            <button type="button" className="studio-btn studio-btn--primary tap-feedback" onClick={() => void logSleep()}>
-              {saved ? 'Saved!' : 'Save sleep log'}
-            </button>
-          </div>
-        )}
       </section>
 
       {dashboard && (
         <>
-          <section className="sleep-watch card">
-            <div className="sleep-watch__header">
-              <div className="sleep-watch__icon">
-                <StudioIcon name="heart" size={22} />
-              </div>
-              <div>
-                <h3 className="sleep-watch__title">Apple Watch</h3>
-                <p className="sleep-watch__sub">
-                  {watchConnected
-                    ? `Connected to ${watchMeta.deviceName ?? 'Apple Watch'} via Apple Health`
-                    : 'Pull sleep stages and wake times from Margaret\'s watch'}
-                </p>
-              </div>
-            </div>
-
-            {watchConnected ? (
-              <div className="sleep-watch__actions">
-                {watchMeta.lastSyncAt && (
-                  <p className="sleep-watch__synced">
-                    Last synced {new Date(watchMeta.lastSyncAt).toLocaleString([], { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' })}
-                    {lastNight?.loggedBy === 'apple_watch' && ' · from watch'}
-                  </p>
-                )}
-                <button
-                  type="button"
-                  className="studio-btn studio-btn--primary tap-feedback"
-                  disabled={watchSyncing}
-                  onClick={() => void handleSyncWatch()}
-                >
-                  {watchSyncing ? 'Syncing…' : 'Sync from Apple Health'}
-                </button>
-                <button
-                  type="button"
-                  className="studio-btn studio-btn--text tap-feedback"
-                  onClick={handleDisconnectWatch}
-                >
-                  Disconnect
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="studio-btn studio-btn--primary tap-feedback"
-                disabled={watchSyncing}
-                onClick={() => void handleConnectWatch()}
-              >
-                {watchSyncing ? 'Connecting…' : 'Connect Apple Watch'}
-              </button>
-            )}
-
-            <p className="sleep-watch__note">
-              Sleep data flows through Apple Health. On iPhone, open Health → Browse → Sleep to verify permissions.
-            </p>
-          </section>
-
           <section className="sleep-tips card">
             <h3 className="studio-section-title">Evening wind-down tips</h3>
             <ul className="sleep-tips__list">

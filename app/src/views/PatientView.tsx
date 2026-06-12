@@ -20,7 +20,6 @@ import FamiliarFaces from '../components/FamiliarFaces';
 import SafetyCircle from '../components/SafetyCircle';
 import EmergencySOS from '../components/EmergencySOS';
 import SettingsSheet from '../components/SettingsSheet';
-import CaregiverMirror from '../components/CaregiverMirror';
 import GoldenPathDemo from '../components/GoldenPathDemo';
 import MemoryPhotoRecap from '../components/MemoryPhotoRecap';
 import SleepTracker from '../components/SleepTracker';
@@ -166,7 +165,6 @@ export default function PatientView() {
       {activeTab === 'meds' && <MedTracker />}
       {activeTab === 'events' && <EventsTab events={events ?? []} />}
       {activeTab === 'sanctuary' && <SoundSanctuary />}
-      {!comfortModeActive && <CaregiverMirror />}
       <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       {demoMode && (
         <GoldenPathDemo

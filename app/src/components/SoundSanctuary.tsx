@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { speak, unlockAudioPlayback } from '../services/elevenlabs';
 
 interface Sound {
   id: string;
@@ -333,6 +334,7 @@ export default function SoundSanctuary() {
   const masterGainRef = useRef<GainNode | null>(null);
   const stopCurrentRef = useRef<(() => void) | null>(null);
   const breathTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastSpokenPhaseRef = useRef<number>(-1);
 
   const getCtx = () => {
     if (!ctxRef.current || ctxRef.current.state === 'closed') {
@@ -372,8 +374,15 @@ export default function SoundSanctuary() {
       if (breathTimerRef.current) clearInterval(breathTimerRef.current);
       setBreathPhase(0);
       setBreathProgress(0);
+      lastSpokenPhaseRef.current = -1;
       return;
     }
+
+    // Speak the first phase immediately
+    unlockAudioPlayback();
+    void speak(BREATH_PHASES[0], { clara: true });
+    lastSpokenPhaseRef.current = 0;
+
     let phase = 0;
     let elapsed = 0;
     const TICK_MS = 50;
@@ -386,6 +395,11 @@ export default function SoundSanctuary() {
         elapsed = 0;
         phase = (phase + 1) % BREATH_PHASES.length;
         setBreathPhase(phase);
+        // Speak each new phase
+        if (lastSpokenPhaseRef.current !== phase) {
+          lastSpokenPhaseRef.current = phase;
+          void speak(BREATH_PHASES[phase], { clara: true });
+        }
       }
     }, TICK_MS);
 
