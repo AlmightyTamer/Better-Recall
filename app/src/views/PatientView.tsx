@@ -143,8 +143,6 @@ export default function PatientView() {
           onNavigate={handleTabChange}
           firstName={firstName}
           acseScore={acseScore}
-          caregiverName={user?.caregiverName}
-          caregiverPhone={user?.caregiverPhone}
           medications={user?.medications ?? []}
           moreOpen={moreOpen}
           onToggleMore={() => setMoreOpen((v) => !v)}
@@ -202,8 +200,6 @@ function HomeTab({
   onNavigate,
   firstName,
   acseScore,
-  caregiverName,
-  caregiverPhone,
   medications,
   moreOpen,
   onToggleMore,
@@ -213,8 +209,6 @@ function HomeTab({
   onNavigate: (tab: Tab) => void;
   firstName: string;
   acseScore: number;
-  caregiverName?: string;
-  caregiverPhone?: string;
   medications: Medication[];
   moreOpen: boolean;
   onToggleMore: () => void;
@@ -304,17 +298,6 @@ function HomeTab({
             ))}
           </div>
         </>
-      )}
-
-      {caregiverName && caregiverPhone && (
-        <a href={`tel:${caregiverPhone}`} className="caregiver-call-strip tap-feedback">
-          <span className="caregiver-call-strip__avatar">{caregiverName.split(' ').map(n => n[0]).join('').slice(0,2)}</span>
-          <div>
-            <p className="caregiver-call-strip__name">{caregiverName}</p>
-            <p className="caregiver-call-strip__hint">Your caregiver · Tap to call</p>
-          </div>
-          <StudioIcon name="send" size={18} />
-        </a>
       )}
 
       <button type="button" className="home-more-toggle tap-feedback" onClick={onToggleMore} aria-expanded={moreOpen}>

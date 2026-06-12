@@ -4,7 +4,7 @@ import { db, type FamiliarFace } from '../db/db';
 import { useAppStore } from '../store/appStore';
 import { buildMemorySlides, type MemorySlide } from '../lib/memoryRecap';
 import { memoryPhotoUrl } from '../lib/memoryPhotos';
-import { speak, stopSpeaking } from '../services/elevenlabs';
+import { speak, stopSpeaking, unlockAudioPlayback } from '../services/elevenlabs';
 import StudioIcon from './StudioIcon';
 
 const FALLBACK_PHOTO = memoryPhotoUrl('garden');
@@ -49,6 +49,7 @@ export default function MemoryPhotoRecap() {
     if (session !== sessionRef.current) return;
 
     try {
+      unlockAudioPlayback();
       await speak(slide.speakText, { warm: true });
     } catch (err) {
       console.error(err);

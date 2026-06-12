@@ -66,8 +66,8 @@ export default function VoiceAgent() {
     setError('');
   }, [stopListening, firstName]);
 
-  const speakResponse = useCallback(async (response: string) => {
-    if (!sessionActiveRef.current) return;
+  const speakResponse = useCallback(async (response: string, force = false) => {
+    if (!force && !sessionActiveRef.current) return;
     stopListening();
     setClaraLine(response);
     setState('speaking');
@@ -76,17 +76,9 @@ export default function VoiceAgent() {
       await speak(response, { clara: true });
     } catch (err) {
       console.error(err);
-      setError('Voice unavailable — read my reply above, then tap the mic to continue.');
-      await new Promise((r) => setTimeout(r, 2800));
-      if (!sessionActiveRef.current) return;
-      setError('');
     }
-    if (sessionActiveRef.current) {
-      await new Promise((r) => setTimeout(r, POST_SPEAK_PAUSE_MS));
-      setState('idle');
-    } else {
-      setState('idle');
-    }
+    await new Promise((r) => setTimeout(r, POST_SPEAK_PAUSE_MS));
+    setState('idle');
   }, [stopListening]);
 
   const runCascade = useCallback(
@@ -224,7 +216,35 @@ export default function VoiceAgent() {
     sessionActiveRef.current = true;
     setInSession(true);
     setError('');
-    void processUtterance(text);
+    // Force-speak text responses even if session ref is briefly unset
+    void (async () => {
+      checkRepeatQuestion(text);
+      setState('thinking');
+      setClaraLine('One moment…');
+      const intent = detectClaraIntent(text);
+      const ctx = await buildClaraRichContext(user, acseScore);
+      let response: string;
+      if (intent.tailoredFirst) {
+        response = getTailoredResponse(intent.intent, ctx);
+      } else {
+        try {
+          const result = await claraChat(text, historyRef.current, user?.name ?? 'Margaret', ctx);
+          response = result.reply;
+          setLlmConnected(result.fromLlm);
+        } catch {
+          response = getTailoredResponse(intent.intent, ctx);
+          setLlmConnected(false);
+        }
+      }
+      historyRef.current = [
+        ...historyRef.current,
+        { role: 'user' as const, content: text },
+        { role: 'assistant' as const, content: response },
+      ].slice(-20);
+      await speakResponse(response, true);
+      sessionActiveRef.current = false;
+      setInSession(false);
+    })();
   };
 
   const statusLabel =

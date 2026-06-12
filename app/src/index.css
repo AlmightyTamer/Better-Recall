@@ -2482,7 +2482,9 @@ h1, h2, h3,
 
 .clara-room__speech--seamless {
   flex: unset;
-  min-height: 90px;
+  min-height: 160px;
+  max-height: 260px;
+  overflow-y: auto;
   background: var(--studio-card-bg, #fff);
   border: 1.5px solid rgba(0, 0, 0, 0.09);
   border-radius: 18px;
@@ -2490,9 +2492,11 @@ h1, h2, h3,
 }
 .clara-room__speech--seamless .clara-room__line {
   color: var(--studio-text, #000);
-  font-size: 17px;
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 19px;
   font-weight: 400;
-  line-height: 1.6;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
 }
 
 [data-theme="dark"] .clara-room--seamless .clara-room__backdrop::after {
@@ -2553,6 +2557,7 @@ h1, h2, h3,
 }
 [data-theme="dark"] .clara-room__speech--seamless .clara-room__line {
   color: #F4F9FF;
+  font-family: 'Fraunces', Georgia, serif;
 }
 
 .clara-flower-pulse {
@@ -2766,8 +2771,10 @@ h1, h2, h3,
 
 .clara-room__line {
   margin: 0;
-  font-size: 17px;
-  line-height: 1.6;
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 19px;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
   color: var(--studio-text-bright);
   width: 100%;
   word-wrap: break-word;

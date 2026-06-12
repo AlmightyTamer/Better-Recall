@@ -14,6 +14,7 @@ export default function CareJournal() {
   const [mood, setMood] = useState<CareJournalEntry['mood']>('good');
   const [note, setNote] = useState('');
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   const entries = useLiveQuery<CareJournalEntry[]>(
     () =>
@@ -24,17 +25,24 @@ export default function CareJournal() {
   ) ?? [];
 
   const handleSave = async () => {
-    if (!user?.id || !note.trim()) return;
-    await db.careJournal.add({
-      userId: user.id,
-      timestamp: new Date().toISOString(),
-      mood,
-      note: note.trim(),
-      author: user.caregiverName,
-    });
-    setNote('');
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setSaveError('');
+    if (!user?.id) { setSaveError('Session not loaded — please try again.'); return; }
+    if (!note.trim()) { setSaveError('Please write a note before saving.'); return; }
+    try {
+      await db.careJournal.add({
+        userId: user.id,
+        timestamp: new Date().toISOString(),
+        mood,
+        note: note.trim(),
+        author: user.caregiverName || user.name || 'Caregiver',
+      });
+      setNote('');
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (e) {
+      console.error('CareJournal save failed:', e);
+      setSaveError('Could not save — please try again.');
+    }
   };
 
   return (
@@ -65,6 +73,7 @@ export default function CareJournal() {
           onChange={(e) => setNote(e.target.value)}
           style={{ marginBottom: 10 }}
         />
+        {saveError && <p style={{ color: '#EF4444', fontSize: 13, margin: '4px 0 8px' }}>{saveError}</p>}
         <button type="button" className="studio-btn studio-btn--primary tap-feedback" style={{ width: '100%' }} onClick={() => void handleSave()}>
           {saved ? 'Saved ✓' : 'Save journal entry'}
         </button>
