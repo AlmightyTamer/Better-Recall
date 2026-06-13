@@ -286,7 +286,7 @@ export default function VoiceAgent() {
 
         {/* Flower */}
         <div className="cv2-stage">
-          <ClaraFlowerPulse active={flowerActive} size={148} className="cv2-flower" />
+          <ClaraFlowerPulse active={flowerActive} size={120} className="cv2-flower" />
           {state === 'listening' && (
             <div className="cv2-wave" aria-hidden>
               {[0,1,2,3,4].map(i => (
