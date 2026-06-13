@@ -1,6 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
 import { GROQ_API_KEY } from '../env';
-import { usesApiProxy } from '../services/apiClient';
 
 const GROQ_TRANSCRIBE_URL = 'https://api.groq.com/openai/v1/audio/transcriptions';
 const WHISPER_MODEL = 'whisper-large-v3-turbo';
@@ -48,7 +47,8 @@ export function useWhisperVoice() {
       const audioBlob = new Blob(chunks, { type: mimeType });
       if (audioBlob.size < 1500) return '';
 
-      const apiKey = usesApiProxy() ? '' : GROQ_API_KEY;
+      // Whisper STT always calls Groq directly — the proxy has no transcription route.
+      const apiKey = GROQ_API_KEY;
       if (!apiKey?.trim()) throw new Error('No Groq API key available for Whisper STT');
 
       const formData = new FormData();
