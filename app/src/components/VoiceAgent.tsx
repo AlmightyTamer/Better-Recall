@@ -259,117 +259,106 @@ export default function VoiceAgent() {
     })();
   };
 
-  const statusLabel =
-    state === 'listening' ? 'Listening' :
-    state === 'thinking' ? 'Thinking' :
-    state === 'speaking' ? 'Speaking' : inSession ? 'In conversation' : 'Ready';
+  const micIcon = state === 'listening' ? 'mic' : state === 'thinking' || state === 'speaking' ? 'close' : 'mic';
+  const micHint =
+    state === 'listening' ? 'Listening… tap to stop' :
+    state === 'thinking'  ? 'Thinking…' :
+    state === 'speaking'  ? 'Tap to stop Clara' :
+    'Tap to talk';
 
   return (
-    <div className="clara-room clara-room--seamless">
-      <div className="clara-room__inner studio-scroll">
-        <header className="clara-room__header clara-room__header--slim">
-          <div className="clara-room__avatar-sm clara-room__avatar-icon">
-            <StudioIcon name="clara" size={22} />
-          </div>
-          <div className="clara-room__intro">
-            <h1 className="clara-room__name">Clara</h1>
-            <span className={`clara-room__badge clara-room__badge--${state}`}>{statusLabel}</span>
-            {llmConnected === false && (
-              <span className="clara-room__offline-badge">Offline mode</span>
-            )}
-          </div>
-        </header>
+    <div className="cv2-room">
 
-        <div className="clara-room__stage">
-          <ClaraFlowerPulse active={flowerActive} size={96} className="clara-room__flower" />
-          {!flowerActive && state === 'listening' && (
-            <div className="clara-room__wave clara-room__wave--inline" aria-hidden>
-              {[0, 1, 2, 3, 4].map((i) => (
-                <span key={i} className="clara-room__wave-bar" style={{ animationDelay: `${i * 0.1}s` }} />
+      {/* ── Top bar ── */}
+      <header className="cv2-header">
+        <div className="cv2-header__dot cv2-header__dot--idle" />
+        <span className="cv2-header__name">Clara</span>
+        <span className={`cv2-status cv2-status--${state}`}>
+          {state === 'listening' ? '● Listening' :
+           state === 'thinking'  ? '◌ Thinking…' :
+           state === 'speaking'  ? '▶ Speaking' : 'Ready'}
+        </span>
+        {llmConnected === false && <span className="cv2-offline">Offline</span>}
+      </header>
+
+      {/* ── Scrollable body ── */}
+      <div className="cv2-body studio-scroll">
+
+        {/* Flower */}
+        <div className="cv2-stage">
+          <ClaraFlowerPulse active={flowerActive} size={148} className="cv2-flower" />
+          {state === 'listening' && (
+            <div className="cv2-wave" aria-hidden>
+              {[0,1,2,3,4].map(i => (
+                <span key={i} className="cv2-wave__bar" style={{ animationDelay: `${i * 0.12}s` }} />
               ))}
             </div>
           )}
         </div>
 
-        <div
-          className={`clara-room__speech clara-room__speech--seamless clara-room__speech--${state}`}
-          aria-live="polite"
+        {/* Speech text */}
+        <div className="cv2-speech" aria-live="polite">
+          {error && <p className="cv2-speech__error">{error}</p>}
+          {claraLine && <p className="cv2-speech__line">{claraLine}</p>}
+        </div>
+
+        {/* Suggestion chips — only when idle */}
+        {!inSession && state === 'idle' && (
+          <div className="cv2-chips" role="group" aria-label="Quick suggestions">
+            {SUGGESTIONS.map(s => (
+              <button
+                key={s.label}
+                type="button"
+                className="cv2-chip tap-feedback"
+                onClick={() => handleChip(s.label)}
+              >
+                <StudioIcon name={s.icon} size={14} />
+                {s.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div style={{ flex: 1, minHeight: 16 }} />
+      </div>
+
+      {/* ── Input bar (always visible) ── */}
+      <div className="cv2-input-bar">
+        <button
+          type="button"
+          className={`cv2-mic tap-feedback cv2-mic--${state}`}
+          onClick={handleMicTap}
+          aria-label={
+            state === 'listening' ? 'Stop listening' :
+            state !== 'idle'      ? 'Cancel'         : 'Talk to Clara'
+          }
         >
-          {error ? (
-            <>
-              <p className="clara-room__error">{error}</p>
-              {claraLine && <p className="clara-room__line">{claraLine}</p>}
-            </>
-          ) : (
-            claraLine ? <p className="clara-room__line">{claraLine}</p> : null
-          )}
-        </div>
+          <span className="cv2-mic__ring" />
+          <StudioIcon name={micIcon} size={24} />
+        </button>
 
-        <div className="clara-room__controls">
-          <button
-            type="button"
-            className={`clara-room__mic tap-feedback clara-room__mic--${state}`}
-            onClick={handleMicTap}
-            aria-label={
-              state === 'listening' ? 'Stop listening' :
-              state === 'speaking' ? 'Stop Clara' :
-              state === 'thinking' ? 'Cancel' : 'Talk to Clara'
-            }
-          >
-            <span className="clara-room__mic-ring" />
-            <span className="clara-room__mic-ring clara-room__mic-ring--2" />
-            <StudioIcon name={isListening ? 'mic' : 'clara'} size={32} />
-          </button>
-          <p className="clara-room__mic-hint">
-            {state === 'listening'
-              ? 'Listening — tap to stop'
-              : state === 'thinking'
-                ? 'One moment…'
-                : state === 'speaking'
-                  ? 'Tap to interrupt'
-                  : 'Tap to talk'}
-          </p>
-        </div>
-
-        <div className="clara-room__text-input clara-room__text-input--desktop">
+        <div className="cv2-text-wrap">
           <input
             type="text"
-            className="clara-room__text-field"
-            placeholder="Type a message to Clara…"
+            className="cv2-text-field"
+            placeholder="Type to Clara…"
             value={typedInput}
-            onChange={(e) => setTypedInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleTextSend(); }}
+            onChange={e => setTypedInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') handleTextSend(); }}
             aria-label="Type a message to Clara"
           />
           <button
             type="button"
-            className="clara-room__text-send tap-feedback"
+            className="cv2-send tap-feedback"
             onClick={handleTextSend}
             aria-label="Send"
-            disabled={!typedInput.trim()}
+            style={{ visibility: typedInput.trim() ? 'visible' : 'hidden' }}
           >
-            <StudioIcon name="send" size={18} />
+            <StudioIcon name="send" size={16} />
           </button>
         </div>
 
-        {!inSession && state === 'idle' && (
-          <section className="clara-room__suggestions">
-            <p className="clara-room__suggestions-label">Quick things to say</p>
-            <div className="clara-room__chips">
-              {SUGGESTIONS.map((s) => (
-                <button
-                  key={s.label}
-                  type="button"
-                  className="clara-room__chip tap-feedback"
-                  onClick={() => handleChip(s.label)}
-                >
-                  <StudioIcon name={s.icon} size={18} />
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
+        <p className="cv2-mic-hint">{micHint}</p>
       </div>
     </div>
   );
