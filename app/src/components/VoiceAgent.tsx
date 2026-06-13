@@ -148,38 +148,50 @@ export default function VoiceAgent() {
     }
   }, [checkRepeatQuestion, user, acseScore, speakResponse, runCascade]);
 
-  const runListeningTurn = useCallback(async () => {
-    while (sessionActiveRef.current) {
-      try {
-        stopSpeaking();
-        await new Promise((r) => setTimeout(r, 300));
-        setState('listening');
-        setClaraLine("I'm listening…");
-        setError('');
-        const heard = await startListening();
-        if (!sessionActiveRef.current) break;
-        await processUtterance(heard);
-      } catch (err) {
-        console.error(err);
-        if (!sessionActiveRef.current) break;
-        const msg = err instanceof Error ? err.message : 'Could not hear you';
-        if (msg.includes('denied') || msg.includes('not-allowed')) {
-          setError('Please allow microphone access in your browser settings.');
-          setClaraLine('Once the mic is allowed, tap below and we can talk.');
-          sessionActiveRef.current = false;
-          setInSession(false);
-          setState('idle');
-          break;
-        }
-        setClaraLine("I didn't quite catch that — go ahead when you're ready.");
-        await new Promise((r) => setTimeout(r, 800));
+  // One tap = one turn. Listen once, respond, then return to idle. No auto re-listen
+  // (continuous looping caused the mic to pick up Clara's own voice and never settle).
+  const runSingleTurn = useCallback(async () => {
+    try {
+      stopSpeaking();
+      await new Promise((r) => setTimeout(r, 200));
+      if (!sessionActiveRef.current) return;
+
+      setState('listening');
+      setClaraLine("I'm listening…");
+      setError('');
+
+      const heard = await startListening();
+      if (!sessionActiveRef.current) return;
+
+      if (!heard.trim()) {
+        setClaraLine(`I didn't catch that, ${firstName} — tap the mic and tell me again.`);
+        setState('idle');
+        return;
       }
+
+      await processUtterance(heard);
+    } catch (err) {
+      console.error(err);
+      if (!sessionActiveRef.current) return;
+      const msg = err instanceof Error ? err.message : 'Could not hear you';
+      if (msg.includes('denied') || msg.includes('not-allowed')) {
+        setError('Please allow microphone access in your browser settings.');
+        setClaraLine('Once the mic is allowed, tap below and we can talk.');
+      } else {
+        setClaraLine("I didn't quite catch that — tap the mic and try again.");
+      }
+      setState('idle');
+    } finally {
+      // The mic is closed; a turn is no longer in progress.
+      sessionActiveRef.current = false;
+      setInSession(false);
     }
-  }, [startListening, processUtterance, stopSpeaking]);
+  }, [startListening, processUtterance, stopSpeaking, firstName]);
 
   const handleMicTap = useCallback(() => {
     unlockAudioPlayback();
 
+    // Tapping while a turn is active cancels it.
     if (state === 'speaking' || state === 'listening' || state === 'thinking' || inSession) {
       stopSession();
       return;
@@ -189,8 +201,8 @@ export default function VoiceAgent() {
     sessionActiveRef.current = true;
     setInSession(true);
     setError('');
-    void runListeningTurn();
-  }, [state, inSession, stopSession, runListeningTurn, stopSpeaking]);
+    void runSingleTurn();
+  }, [state, inSession, stopSession, runSingleTurn, stopSpeaking]);
 
   const handleChip = (q: string) => {
     unlockAudioPlayback();
@@ -199,8 +211,9 @@ export default function VoiceAgent() {
     sessionActiveRef.current = true;
     setInSession(true);
     setError('');
-    void processUtterance(q).then(() => {
-      if (sessionActiveRef.current) void runListeningTurn();
+    void processUtterance(q).finally(() => {
+      sessionActiveRef.current = false;
+      setInSession(false);
     });
   };
 
@@ -298,8 +311,9 @@ export default function VoiceAgent() {
             className={`clara-room__mic tap-feedback clara-room__mic--${state}`}
             onClick={handleMicTap}
             aria-label={
-              inSession ? 'End conversation' :
-              state === 'speaking' ? 'Stop Clara' : 'Talk to Clara'
+              state === 'listening' ? 'Stop listening' :
+              state === 'speaking' ? 'Stop Clara' :
+              state === 'thinking' ? 'Cancel' : 'Talk to Clara'
             }
           >
             <span className="clara-room__mic-ring" />
@@ -307,11 +321,13 @@ export default function VoiceAgent() {
             <StudioIcon name={isListening ? 'mic' : 'clara'} size={32} />
           </button>
           <p className="clara-room__mic-hint">
-            {inSession
-              ? 'Tap to end'
-              : state === 'speaking'
-                ? 'Tap to interrupt'
-                : 'Tap to talk'}
+            {state === 'listening'
+              ? 'Listening — tap to stop'
+              : state === 'thinking'
+                ? 'One moment…'
+                : state === 'speaking'
+                  ? 'Tap to interrupt'
+                  : 'Tap to talk'}
           </p>
         </div>
 
