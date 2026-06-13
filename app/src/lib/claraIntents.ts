@@ -38,7 +38,10 @@ const LOCATION_PATTERNS = [
   /\bwhere are we\b/i,
   /\bwhat (is this|place is this)\b/i,
   /\bi'?m lost\b/i,
+  /\bi am lost\b/i,
+  /\bi feel lost\b/i,
   /\bcan'?t find (my way|home)\b/i,
+  /\bdon'?t know where i am\b/i,
 ];
 
 const TIME_PATTERNS = [
