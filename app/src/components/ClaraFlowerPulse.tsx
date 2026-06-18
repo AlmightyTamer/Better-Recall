@@ -1,4 +1,4 @@
-/** Clara's response indicator — rose bloom pulses when active */
+/** Clara's liquid glass orb — pulses and breathes when active */
 
 interface ClaraFlowerPulseProps {
   active: boolean;
@@ -6,29 +6,23 @@ interface ClaraFlowerPulseProps {
   className?: string;
 }
 
-const PETAL_ANGLES = [0, 45, 90, 135, 180, 225, 270, 315];
-
 export default function ClaraFlowerPulse({ active, size = 96, className = '' }: ClaraFlowerPulseProps) {
   return (
     <div
-      className={`clara-flower-pulse ${active ? 'clara-flower-pulse--active' : ''} ${className}`}
+      className={`lg-clara-orb ${active ? 'lg-clara-orb--active' : ''} ${className}`}
       style={{ width: size, height: size }}
       aria-hidden={!active}
       aria-label={active ? 'Clara is responding' : undefined}
       role={active ? 'status' : undefined}
     >
-      <span className="clara-flower-pulse__stem" />
-      <span className="clara-flower-pulse__center" />
-      {PETAL_ANGLES.map((angle, i) => (
-        <span
-          key={angle}
-          className="clara-flower-pulse__petal"
-          style={{
-            ['--petal-angle' as string]: `${angle}deg`,
-            ['--petal-delay' as string]: `${i * 0.18}s`,
-          }}
-        />
-      ))}
+      <div className="lg-clara-orb__sphere">
+        <div className="lg-clara-orb__core" />
+        <div className="lg-clara-orb__shine" />
+        <div className="lg-clara-orb__shine2" />
+        <div className="lg-clara-orb__rim" />
+      </div>
+      <div className="lg-clara-orb__ring" />
+      <div className="lg-clara-orb__ring2" />
     </div>
   );
 }

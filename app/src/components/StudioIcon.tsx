@@ -48,7 +48,9 @@ interface StudioIconProps {
 const PATHS: Record<IconName, JSX.Element> = {
   home: (
     <>
-      <path d="M4 10.5L12 4l8 6.5V20a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-9.5z" />
+      <circle cx="12" cy="12" r="9" strokeOpacity="0.5" />
+      <circle cx="12" cy="12" r="5" />
+      <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none" />
     </>
   ),
   clara: (

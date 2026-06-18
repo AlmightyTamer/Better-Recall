@@ -176,12 +176,12 @@ export default function PatientView() {
 }
 
 const QUICK_ACTIONS: { icon: IconName; label: string; color: string; tab?: Tab; action?: string }[] = [
-  { icon: 'clara',  label: 'Clara',      color: '#AF52DE', tab: 'voice' },
-  { icon: 'brain',  label: 'Mind',       color: '#007AFF', tab: 'mind' },
-  { icon: 'moon',   label: 'Sleep',      color: '#5856D6', tab: 'sleep' },
-  { icon: 'meds',   label: 'Meds',       color: '#FF9500', tab: 'meds' },
-  { icon: 'events', label: 'Today',      color: '#34C759', tab: 'events' },
-  { icon: 'music',  label: 'Calm',       color: '#5AC8FA', tab: 'sanctuary' },
+  { icon: 'clara',  label: 'Clara',      color: 'transparent', tab: 'voice' },
+  { icon: 'brain',  label: 'Mind',       color: 'transparent', tab: 'mind' },
+  { icon: 'moon',   label: 'Sleep',      color: 'transparent', tab: 'sleep' },
+  { icon: 'meds',   label: 'Meds',       color: 'transparent', tab: 'meds' },
+  { icon: 'events', label: 'Today',      color: 'transparent', tab: 'events' },
+  { icon: 'music',  label: 'Calm',       color: 'transparent', tab: 'sanctuary' },
 ];
 
 function QuickTile({ icon, label, color, onClick }: { icon: IconName; label: string; color: string; onClick: () => void }) {
