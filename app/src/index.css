@@ -8413,3 +8413,159 @@ button .studio-icon { color: rgba(0,0,0,0.70); }
   margin-bottom: 4px !important;
 }
 
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIQUID GLASS — PASS 7  (icon/emoji color fix + misc invisible text)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Mind game card emoji/letter icons — were white on white bg */
+.mind-game-card__emoji {
+  color: rgba(0,0,0,0.70) !important;
+  font-weight: 700 !important;
+  font-size: 1.2rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Mind game card play button and tag */
+.mind-game-card__play {
+  color: rgba(0,0,0,0.72) !important;
+  background: rgba(255,255,255,0.52) !important;
+  border: 1px solid rgba(255,255,255,0.78) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.97) inset !important;
+}
+.mind-game-card__tag {
+  color: rgba(0,0,0,0.48) !important;
+  background: rgba(255,255,255,0.42) !important;
+  border: 1px solid rgba(255,255,255,0.68) !important;
+}
+.mind-game-card__title { color: rgba(0,0,0,0.84) !important; }
+.mind-game-card__sub   { color: rgba(0,0,0,0.48) !important; }
+
+/* Any element whose color was set to white for a colored bg */
+/* Force ALL text dark unless inside the Clara speech or dark buttons */
+body *:not(.cv2-speech__line):not(.cv2-speech__line *):not(.med-tracker__take-btn):not(.studio-btn--primary):not(.disclaimer-card__cta) {
+  color: rgba(0,0,0,0.82);
+}
+/* Re-apply specific muted tones */
+.studio-tab              { color: rgba(0,0,0,0.38) !important; }
+.studio-tab--active      { color: rgba(0,0,0,0.84) !important; }
+.metric-card__label,
+.metric-card__sub,
+.ios-section-label,
+.quick-tile__label,
+.dash-hero__date,
+.cv2-status,
+.cv2-mic-hint,
+.dash-login__tagline,
+.dash-btn__hint          { color: rgba(0,0,0,0.44) !important; }
+
+/* Stat/score numbers keep their semantic color */
+.dash-hero__score,
+.metric-card__value { color: inherit; }
+
+/* Make sure the "Play" text and any game button text is visible */
+[class*="game"] button,
+[class*="game"] [class*="btn"],
+[class*="game"] [class*="play"] { color: rgba(0,0,0,0.78) !important; }
+
+/* Sleep tab icons / any tab that had icon issues */
+.sleep-tab *,
+.mind-tab *,
+.events-tab *,
+.sanctuary-tab * { color: rgba(0,0,0,0.78); }
+
+/* Studio icon always dark regardless of parent */
+.studio-icon { color: rgba(0,0,0,0.72) !important; stroke: rgba(0,0,0,0.72) !important; }
+
+/* Exceptions — dark buttons keep white text */
+.med-tracker .med-tracker__take-btn,
+.disclaimer-card__cta,
+.studio-btn--primary { color: rgba(255,255,255,0.92) !important; }
+
+/* SOS label stays muted red */
+.sos-inline__label,
+.sos-fab__label { color: rgba(150,20,20,0.80) !important; }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIQUID GLASS — PASS 8  (Take Now text fix + Sleep tab decolored)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Take Now button: Pass 7 accidentally set it to white text — restore dark ── */
+.med-tracker .med-tracker__take-btn,
+.med-tracker .btn-electric {
+  color: rgba(0,0,0,0.78) !important;
+}
+
+/* ── Sleep hero card: liquid glass instead of indigo gradient ── */
+.sleep-dashboard__hero {
+  background: rgba(255,255,255,0.45) !important;
+  backdrop-filter: blur(44px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(44px) saturate(180%) !important;
+  border: 1px solid rgba(255,255,255,0.72) !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.97) inset,
+    0 8px 32px rgba(0,0,0,0.10),
+    0 2px 8px rgba(0,0,0,0.07) !important;
+}
+
+/* ── Sleep hero icon chip: glass pill instead of solid indigo ── */
+.sleep-dashboard__hero-icon {
+  background: rgba(255,255,255,0.60) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255,255,255,0.82) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.97) inset !important;
+  color: rgba(0,0,0,0.65) !important;
+}
+
+/* ── Sleep tracker card icon (indigo pill in "Last night" section) ── */
+.sleep-tracker__icon-wrap {
+  background: rgba(255,255,255,0.60) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255,255,255,0.82) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.97) inset !important;
+  color: rgba(0,0,0,0.65) !important;
+}
+
+/* ── Sleep insight strip: glass instead of green tint ── */
+.sleep-insight {
+  background: rgba(255,255,255,0.38) !important;
+  border: 1px solid rgba(255,255,255,0.68) !important;
+}
+
+/* ── Sleep watch strip icon ── */
+.sleep-watch-strip__icon {
+  background: rgba(255,255,255,0.55) !important;
+  border: 1px solid rgba(255,255,255,0.80) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.97) inset !important;
+  color: rgba(0,0,0,0.65) !important;
+  border-radius: 12px !important;
+}
+
+/* ── Calm volume slider: remove red track ── */
+input[type="range"] {
+  accent-color: rgba(100,100,140,0.55) !important;
+}
+
+
+/* ── Sleep chart bars: muted glass instead of indigo ── */
+.sleep-week-bar__fill {
+  background: linear-gradient(180deg, rgba(120,120,160,0.35) 0%, rgba(90,90,130,0.55) 100%) !important;
+  border: 1px solid rgba(255,255,255,0.55) !important;
+}
+
+/* ── Login icon wraps: remove amber/teal color dots ── */
+.dash-btn__icon-wrap--amber,
+.dash-btn__icon-wrap--teal {
+  background: rgba(255,255,255,0.58) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255,255,255,0.78) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.97) inset !important;
+}
+
