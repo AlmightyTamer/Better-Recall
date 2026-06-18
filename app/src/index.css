@@ -8076,3 +8076,255 @@ button .studio-icon { color: rgba(0,0,0,0.70); }
 .dash-login__card .dash-btn__label { color: rgba(0,0,0,0.82) !important; }
 .dash-login__card .dash-btn__hint  { color: rgba(0,0,0,0.42) !important; }
 
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIQUID GLASS — PASS 4  (med fix, global font, stronger shadows)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Global SF Pro font — every element ── */
+*, *::before, *::after {
+  font-family: -apple-system, "SF Pro Text", "SF Pro Display", BlinkMacSystemFont, "Helvetica Neue", sans-serif !important;
+}
+/* Exception: Clara speech stays serif */
+.cv2-speech__line, .cv2-speech__line * {
+  font-family: Georgia, "Times New Roman", serif !important;
+}
+
+/* ── 2. Stronger, more visible card shadows ── */
+.metric-card,
+.quick-tile,
+.home-alert-strip,
+.mind-game-card,
+.state-recon-card,
+.where-am-i,
+.familiar-face,
+.ios-event-row,
+.dash-hero,
+.dash-login__card,
+.disclaimer-card,
+.game-modal__panel,
+[class*="sleep"][class*="card"],
+.med-tracker__card,
+.card {
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.97) inset,
+    0 4px 6px rgba(0,0,0,0.06),
+    0 12px 28px rgba(0,0,0,0.13),
+    0 32px 64px rgba(0,0,0,0.07) !important;
+}
+
+/* ── 3. More transparent card backgrounds so background shows through ── */
+.metric-card,
+.quick-tile,
+.home-alert-strip,
+.mind-game-card,
+.state-recon-card,
+.where-am-i,
+.familiar-face,
+.ios-event-row,
+.dash-hero {
+  background: rgba(255,255,255,0.32) !important;
+}
+
+/* ── 4. MedTracker — proper targeted glass (not wildcard) ── */
+
+/* Kill the bad wildcard that was turning Take Now button into a ghost box */
+[class*="med-tracker"] > * {
+  background: unset !important;
+  backdrop-filter: unset !important;
+  -webkit-backdrop-filter: unset !important;
+  border: unset !important;
+  box-shadow: unset !important;
+  border-radius: unset !important;
+  margin-bottom: unset !important;
+}
+
+/* Re-apply glass ONLY to the actual medication card containers */
+.med-tracker {
+  background: transparent !important;
+  padding: 16px !important;
+}
+
+.med-tracker__list {
+  background: transparent !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+}
+
+.med-tracker__card {
+  background: rgba(255,255,255,0.38) !important;
+  backdrop-filter: blur(44px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(44px) saturate(180%) !important;
+  border: 1px solid rgba(255,255,255,0.72) !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.97) inset,
+    0 4px 6px rgba(0,0,0,0.06),
+    0 12px 28px rgba(0,0,0,0.13) !important;
+  border-radius: 20px !important;
+  padding: 20px !important;
+}
+
+/* The row inside the card — keep flex, don't add glass */
+.med-tracker__card-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Info section — no glass (it's inside the glass card already) */
+.med-tracker__card-info {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  flex: 1 !important;
+}
+
+/* "Take Now" button — proper glass button */
+.btn-electric,
+.med-tracker__take-btn {
+  background: rgba(0,0,0,0.76) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(0,0,0,0.60) !important;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.18) !important;
+  border-radius: 14px !important;
+  color: rgba(255,255,255,0.92) !important;
+  font-weight: 600 !important;
+  font-size: 0.88rem !important;
+  padding: 12px 18px !important;
+  min-height: 44px !important;
+  min-width: 100px !important;
+  cursor: pointer !important;
+  transition: transform 0.26s cubic-bezier(0.34,1.56,0.64,1) !important;
+  flex-shrink: 0 !important;
+}
+.btn-electric:active,
+.med-tracker__take-btn:active { transform: scale(0.93) !important; }
+
+/* Med name, dosage, schedule chips */
+.med-tracker__med-name {
+  color: rgba(0,0,0,0.85) !important;
+  font-size: 1.2rem !important;
+  font-weight: 700 !important;
+}
+.med-tracker__dosage {
+  color: rgba(0,0,0,0.50) !important;
+  font-size: 0.9rem !important;
+  margin: 4px 0 8px !important;
+}
+.schedule-chip {
+  background: rgba(255,255,255,0.50) !important;
+  border: 1px solid rgba(255,255,255,0.75) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.97) inset !important;
+  border-radius: 8px !important;
+  padding: 3px 10px !important;
+  font-size: 0.82rem !important;
+  color: rgba(0,0,0,0.60) !important;
+}
+.med-tracker__due-badge {
+  background: rgba(200,50,50,0.12) !important;
+  color: rgba(160,30,30,0.80) !important;
+  border: 1px solid rgba(200,50,50,0.20) !important;
+  border-radius: 8px !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  padding: 2px 8px !important;
+}
+
+/* Other med tracker states (camera, verify, etc.) */
+.med-tracker__center-card,
+.med-tracker__camera {
+  background: rgba(255,255,255,0.38) !important;
+  backdrop-filter: blur(44px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(44px) saturate(180%) !important;
+  border: 1px solid rgba(255,255,255,0.72) !important;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.06), 0 12px 28px rgba(0,0,0,0.13) !important;
+  border-radius: 20px !important;
+}
+
+/* Page title */
+.studio-page-title {
+  color: rgba(0,0,0,0.82) !important;
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  margin-bottom: 16px !important;
+}
+
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIQUID GLASS — PASS 5  (bolder shadows, stronger glass depth)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Much more visible Apple-style layered shadows ── */
+.dash-hero,
+.home-alert-strip,
+.quick-tile,
+.metric-card,
+.mind-game-card,
+.state-recon-card,
+.where-am-i,
+.familiar-face,
+.ios-event-row,
+.med-tracker__card,
+.disclaimer-card,
+.dash-login__card,
+.card,
+.game-modal__panel,
+.cv2-speech,
+.studio-icon-btn,
+[class*="sleep"][class*="card"],
+[class*="sound"][class*="card"] {
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.98) inset,
+    0 2px 4px rgba(0,0,0,0.08),
+    0 8px 20px rgba(0,0,0,0.14),
+    0 20px 56px rgba(0,0,0,0.10),
+    0 40px 80px rgba(0,0,0,0.05) !important;
+}
+
+/* ── Header / tab bar deeper shadow for elevation ── */
+.studio-header {
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.98) inset,
+    0 4px 16px rgba(0,0,0,0.10),
+    0 12px 32px rgba(0,0,0,0.06) !important;
+}
+.studio-tab-bar,
+.tab-bar {
+  box-shadow:
+    0 -1px 0 rgba(255,255,255,0.98) inset,
+    0 -8px 24px rgba(0,0,0,0.08),
+    0 -2px 8px rgba(0,0,0,0.04) !important;
+}
+
+/* ── Increase glass blur strength on main cards ── */
+.dash-hero,
+.quick-tile,
+.metric-card,
+.home-alert-strip {
+  backdrop-filter: blur(52px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(52px) saturate(200%) !important;
+}
+
+/* ── Quick tile: tighten border radius for sharper Apple look ── */
+.quick-tile {
+  border-radius: 18px !important;
+  padding: 14px !important;
+}
+.quick-tile__icon {
+  border-radius: 12px !important;
+  width: 44px !important;
+  height: 44px !important;
+}
+
