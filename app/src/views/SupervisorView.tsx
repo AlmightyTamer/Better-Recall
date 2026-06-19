@@ -394,7 +394,7 @@ function EventsTab({ user }: { user: User | null }) {
             padding: '14px 16px',
             marginBottom: 10,
             opacity: e.type === 'system_alert' ? 1 : 1,
-            borderLeft: e.type === 'system_alert' ? '4px solid #EF4444' : e.completed ? '4px solid #10B981' : '4px solid #2196F3',
+            borderLeft: e.type === 'system_alert' ? '3px solid rgba(180,40,40,0.22)' : e.completed ? '3px solid rgba(0,0,0,0.10)' : '3px solid rgba(0,0,0,0.10)',
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -417,7 +417,7 @@ function EventsTab({ user }: { user: User | null }) {
               <button
                 onClick={() => e.id && handleDelete(e.id)}
                 className="studio-icon-btn tap-feedback"
-                style={{ color: '#c45c5c' }}
+                style={{ color: 'rgba(0,0,0,0.38)' }}
                 aria-label="Delete event"
               >
                 <StudioIcon name="close" size={16} />
@@ -528,7 +528,7 @@ function MedicationsTab({ user }: { user: User | null }) {
           </div>
           <div className="supervisor-meds__item-actions">
             <button className="studio-icon-btn tap-feedback" aria-label="Edit" onClick={() => startEdit(i)}><StudioIcon name="refresh" size={16} /></button>
-            <button className="studio-icon-btn tap-feedback" aria-label="Delete" style={{ color: '#EF4444' }} onClick={() => handleDelete(i)}><StudioIcon name="close" size={16} /></button>
+            <button className="studio-icon-btn tap-feedback" aria-label="Delete" style={{ color: 'rgba(0,0,0,0.38)' }} onClick={() => handleDelete(i)}><StudioIcon name="close" size={16} /></button>
           </div>
         </div>
       ))}

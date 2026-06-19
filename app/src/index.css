@@ -8569,3 +8569,148 @@ input[type="range"] {
   box-shadow: 0 1px 0 rgba(255,255,255,0.97) inset !important;
 }
 
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIQUID GLASS — PASS 9  (Supervisor full glass + global black text/font)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── GLOBAL: Apple SF Pro on every element, no exceptions ── */
+*, *::before, *::after {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display',
+               'Helvetica Neue', Arial, sans-serif !important;
+}
+
+/* ── GLOBAL: All text near-black, strong enough to read ── */
+body, body * {
+  color: rgba(0,0,0,0.86) !important;
+}
+
+/* ── Muted text stays visually lighter but still legible ── */
+.studio-text-muted,
+[class*="__muted"],
+[class*="__sub"],
+[class*="__hint"],
+[class*="__meta"],
+[class*="__eyebrow"],
+[class*="__tagline"],
+[class*="__label"]:not(button),
+.ios-section-label,
+.quick-tile__label,
+.dash-login__tagline,
+.dash-hero__date,
+.cv2-status,
+.cv2-mic-hint,
+.dash-btn__hint,
+.studio-tab { color: rgba(0,0,0,0.46) !important; }
+
+/* Active tab stays full black */
+.studio-tab--active { color: rgba(0,0,0,0.86) !important; }
+
+/* Score/metric values inherit their semantic color */
+.metric-card__value,
+.dash-hero__score,
+.care-command__score { color: inherit !important; }
+
+/* Studio icons always dark */
+.studio-icon { color: rgba(0,0,0,0.72) !important; stroke: rgba(0,0,0,0.72) !important; }
+
+/* ── studio-btn--primary → liquid glass ── */
+.studio-btn--primary {
+  background: rgba(255,255,255,0.55) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  border: 1px solid rgba(255,255,255,0.82) !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.98) inset,
+    0 4px 16px rgba(0,0,0,0.10) !important;
+  color: rgba(0,0,0,0.82) !important;
+  border-radius: 14px !important;
+}
+.studio-btn--primary:active {
+  transform: scale(0.97) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.98) inset, 0 2px 6px rgba(0,0,0,0.08) !important;
+}
+
+/* ── Alert banner → muted glass instead of bright crimson ── */
+.alert-banner {
+  background: rgba(255,255,255,0.50) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  border: 1px solid rgba(180,40,40,0.20) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.97) inset, 0 4px 16px rgba(0,0,0,0.08) !important;
+  color: rgba(0,0,0,0.80) !important;
+}
+.alert-banner__dismiss {
+  background: rgba(255,255,255,0.42) !important;
+  color: rgba(0,0,0,0.52) !important;
+  border: 1px solid rgba(255,255,255,0.70) !important;
+}
+
+/* ── ACSE status card border → muted (overrides inline style) ── */
+.care-command__status {
+  border: 1px solid rgba(0,0,0,0.10) !important;
+  background: rgba(255,255,255,0.38) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.97) inset !important;
+}
+
+/* ── Care command flags → glass pills ── */
+.care-command__flag--warn,
+.care-command__flag--alert,
+.care-command__flag--ok {
+  background: rgba(255,255,255,0.50) !important;
+  color: rgba(0,0,0,0.65) !important;
+  border: 1px solid rgba(255,255,255,0.78) !important;
+}
+
+/* ── Stats cards colored top borders → clean glass ── */
+.stat-grid__item,
+.stats-tab .card,
+.supervisor-meds__item {
+  border-top: none !important;
+}
+
+/* Kill the colored text label on stats cards */
+.stat-grid__item [style*="color: #"],
+.stats-tab [style*="color: #EF"],
+.stats-tab [style*="color: #10"],
+.stats-tab [style*="color: #F5"] { color: rgba(0,0,0,0.70) !important; }
+
+/* ── Supervisor home: ACSE score keeps semantic red but muted ── */
+.care-command__score { font-size: 36px !important; font-weight: 700 !important; }
+
+/* ── Care command eye-brow label ── */
+.care-command__eyebrow { color: rgba(0,0,0,0.40) !important; }
+
+/* Supervisor sleep clinical dashboard */
+[class*="sleep-clinical"] [style*="background: linear-gradient"],
+[class*="sleep-clinical"] [class*="__icon"] {
+  background: rgba(255,255,255,0.55) !important;
+  color: rgba(0,0,0,0.65) !important;
+}
+
+/* Any remaining colored inline-style backgrounds on supervisor cards */
+.supervisor-view .card,
+.supervisor-view [class*="card"],
+[class*="supervisor"] .card {
+  background: rgba(255,255,255,0.48) !important;
+  backdrop-filter: blur(44px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(44px) saturate(180%) !important;
+  border: 1px solid rgba(255,255,255,0.72) !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.97) inset,
+    0 8px 32px rgba(0,0,0,0.09),
+    0 2px 8px rgba(0,0,0,0.06) !important;
+}
+
+/* Make sure live activity feed and event list rows are glass */
+.events-tab .card,
+.supervisor-events .card {
+  background: rgba(255,255,255,0.48) !important;
+}
+
+/* Recharts: keep chart axis labels readable */
+.recharts-text,
+.recharts-cartesian-axis-tick text { fill: rgba(0,0,0,0.60) !important; }
+
