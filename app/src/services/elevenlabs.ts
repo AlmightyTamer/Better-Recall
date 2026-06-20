@@ -1,26 +1,20 @@
 import { ELEVENLABS_API_KEY } from '../env';
 import { proxyPostBlob, usesApiProxy, warnDirectApiKeys } from './apiClient';
 
+/** Rachel — clear, warm American voice */
 const VOICE_ID = 'EXAVITQu4vr4xnSDxMaL';
-/** Jessica — warm, expressive companion voice for Clara */
+/** Jessica — expressive companion voice for Clara */
 const CLARA_VOICE_ID = 'cgSgspJ2msm6clMCkdW9';
 const ELEVENLABS_BASE = 'https://api.elevenlabs.io/v1';
-const MODEL_IDS = ['eleven_turbo_v2_5', 'eleven_flash_v2_5', 'eleven_multilingual_v2'];
-const CLARA_MODEL_IDS = ['eleven_turbo_v2_5', 'eleven_flash_v2_5', 'eleven_multilingual_v2'];
+const MODEL_IDS = ['eleven_turbo_v2_5', 'eleven_flash_v2_5'];
+const CLARA_MODEL_IDS = ['eleven_turbo_v2_5', 'eleven_flash_v2_5'];
 
 let currentAudio: HTMLAudioElement | null = null;
 let sharedAudioCtx: AudioContext | null = null;
-let audioUnlocked = false;
 let voicesReady: Promise<SpeechSynthesisVoice[]> | null = null;
 let speakGeneration = 0;
 let interruptPlayback: (() => void) | null = null;
 let speakChain: Promise<void> = Promise.resolve();
-
-/** Browser fallback — natural pace, brighter tone */
-const CLARA_SPEECH_RATE = 0.96;
-const CLARA_SPEECH_PITCH = 1.14;
-const CLARA_SPEECH_VOLUME = 1.0;
-const CLARA_SENTENCE_PAUSE_MS = 100;
 
 function isIOSDevice(): boolean {
   if (typeof navigator === 'undefined') return false;
@@ -37,15 +31,7 @@ export function isElevenLabsConfigured(): boolean {
 }
 
 export function primeSpeechSynthesis(): void {
-  if (!('speechSynthesis' in window)) return;
-  try {
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance('Hi');
-    u.volume = 0.01;
-    u.rate = CLARA_SPEECH_RATE;
-    u.pitch = CLARA_SPEECH_PITCH;
-    window.speechSynthesis.speak(u);
-  } catch { /* ignore */ }
+  unlockAudioPlayback();
 }
 
 export function unlockAudioPlayback(): void {
@@ -54,10 +40,7 @@ export function unlockAudioPlayback(): void {
       'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA'
     );
     silent.volume = 0.01;
-    void silent.play().then(() => {
-      audioUnlocked = true;
-      silent.pause();
-    }).catch(() => {});
+    void silent.play().then(() => silent.pause()).catch(() => {});
   } catch { /* ignore */ }
 
   try {
@@ -65,11 +48,8 @@ export function unlockAudioPlayback(): void {
     if (Ctx) {
       if (!sharedAudioCtx) sharedAudioCtx = new Ctx();
       void sharedAudioCtx.resume();
-      audioUnlocked = true;
     }
   } catch { /* ignore */ }
-
-  if ('speechSynthesis' in window) void loadVoices();
 }
 
 export function stopSpeaking(): void {
@@ -102,13 +82,12 @@ export async function speak(text: string, options?: SpeakOptions): Promise<void>
     stopSpeaking();
     const myGen = speakGeneration;
 
-    // Always try ElevenLabs first — real human voice
     if (isElevenLabsConfigured()) {
       try {
         await speakElevenLabs(trimmed, myGen, options);
         return;
       } catch (err) {
-        console.warn('[TTS] ElevenLabs failed, browser fallback:', err);
+        console.warn('[TTS] ElevenLabs failed:', err);
       }
     }
 
@@ -129,11 +108,7 @@ async function speakElevenLabs(text: string, gen: number, options?: SpeakOptions
     try {
       const blob = await fetchElevenLabsAudio(text, modelId, options);
       if (gen !== speakGeneration) return;
-      try {
-        await playAudioBlob(blob, gen);
-      } catch {
-        await playAudioBlobWebAudio(blob, gen);
-      }
+      await playBlob(blob, gen);
       return;
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err));
@@ -142,47 +117,69 @@ async function speakElevenLabs(text: string, gen: number, options?: SpeakOptions
   throw lastError ?? new Error('ElevenLabs TTS failed');
 }
 
+function claraVoiceSettings(clara: boolean, warm: boolean) {
+  if (clara) {
+    return { stability: 0.38, similarity_boost: 0.9, style: 0.62, use_speaker_boost: true, speed: 1.05 };
+  }
+  if (warm) {
+    return { stability: 0.42, similarity_boost: 0.88, style: 0.5, use_speaker_boost: true, speed: 0.98 };
+  }
+  return { stability: 0.5, similarity_boost: 0.82, style: 0.3, use_speaker_boost: true };
+}
+
 async function fetchElevenLabsAudio(text: string, modelId: string, options?: SpeakOptions): Promise<Blob> {
   const clara = options?.clara ?? false;
   const warm = options?.warm ?? false;
   const voiceId = clara ? CLARA_VOICE_ID : VOICE_ID;
-  const voice_settings = clara
-    ? { stability: 0.32, similarity_boost: 0.92, style: 0.68, use_speaker_boost: true, speed: 1.02 }
-    : warm
-      ? { stability: 0.4, similarity_boost: 0.88, style: 0.55, use_speaker_boost: true, speed: 0.96 }
-      : { stability: 0.5, similarity_boost: 0.82, style: 0.3, use_speaker_boost: true };
-
+  const voice_settings = claraVoiceSettings(clara, warm);
   const payload = { text, model_id: modelId, voice_settings };
 
-  if (usesApiProxy()) {
+  // 1️⃣ Direct ElevenLabs — bypasses proxy MeloTTS bug
+  const apiKey = ELEVENLABS_API_KEY?.trim();
+  if (apiKey) {
     try {
-      const blob = await proxyPostBlob('/api/elevenlabs/tts', { voiceId, ...payload });
-      if (!blob.size) throw new Error('Proxy returned empty audio');
-      return blob;
+      const res = await fetch(`${ELEVENLABS_BASE}/text-to-speech/${voiceId}`, {
+        method: 'POST',
+        headers: {
+          'xi-api-key': apiKey,
+          'Content-Type': 'application/json',
+          Accept: 'audio/mpeg',
+        },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        const blob = await res.blob();
+        if (blob.size > 500) return blob;
+      } else {
+        const detail = await res.text().catch(() => '');
+        console.warn('[TTS] Direct ElevenLabs failed:', res.status, detail.slice(0, 80));
+      }
     } catch (err) {
-      console.warn('[TTS] Proxy failed, trying direct:', err);
-      if (!ELEVENLABS_API_KEY?.trim()) throw err;
+      console.warn('[TTS] Direct ElevenLabs threw:', err);
     }
   }
 
-  const res = await fetch(`${ELEVENLABS_BASE}/text-to-speech/${voiceId}`, {
-    method: 'POST',
-    headers: {
-      'xi-api-key': ELEVENLABS_API_KEY,
-      'Content-Type': 'application/json',
-      Accept: 'audio/mpeg',
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    const detail = await res.text().catch(() => '');
-    throw new Error(`ElevenLabs ${res.status}${detail ? `: ${detail.slice(0, 120)}` : ''}`);
+  // 2️⃣ Proxy (now ElevenLabs-first on worker)
+  if (usesApiProxy()) {
+    const blob = await proxyPostBlob('/api/elevenlabs/tts', { voiceId, ...payload });
+    if (!blob.size) throw new Error('Proxy returned empty audio');
+    return blob;
   }
 
-  const blob = await res.blob();
-  if (!blob.size) throw new Error('ElevenLabs returned empty audio');
-  return blob;
+  throw new Error('No ElevenLabs API key or proxy');
+}
+
+/** Play via Web Audio on iOS (reliable); HTML Audio elsewhere */
+async function playBlob(blob: Blob, gen: number): Promise<void> {
+  if (isIOSDevice()) {
+    await playAudioBlobWebAudio(blob, gen);
+    return;
+  }
+  try {
+    await playAudioBlob(blob, gen);
+  } catch {
+    await playAudioBlobWebAudio(blob, gen);
+  }
 }
 
 async function playAudioBlob(blob: Blob, gen: number): Promise<void> {
@@ -217,7 +214,6 @@ async function playAudioBlob(blob: Blob, gen: number): Promise<void> {
   });
 }
 
-/** Web Audio playback — works on iOS after unlockAudioPlayback() on user tap */
 async function playAudioBlobWebAudio(blob: Blob, gen: number): Promise<void> {
   if (gen !== speakGeneration) return;
 
@@ -228,7 +224,8 @@ async function playAudioBlobWebAudio(blob: Blob, gen: number): Promise<void> {
   const ctx = sharedAudioCtx;
   await ctx.resume();
 
-  const buffer = await ctx.decodeAudioData(await blob.arrayBuffer());
+  const arrayBuffer = await blob.arrayBuffer();
+  const buffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
   if (gen !== speakGeneration) return;
 
   await new Promise<void>((resolve, reject) => {
@@ -244,7 +241,7 @@ async function playAudioBlobWebAudio(blob: Blob, gen: number): Promise<void> {
       resolve();
     };
     const interrupt = () => {
-      try { source.stop(); } catch { /* already stopped */ }
+      try { source.stop(); } catch { /* stopped */ }
       finish();
     };
     interruptPlayback = interrupt;
@@ -273,19 +270,6 @@ function loadVoices(): Promise<SpeechSynthesisVoice[]> {
   return voicesReady;
 }
 
-function pickClaraVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | undefined {
-  const prefer = ['Samantha', 'Karen', 'Serena', 'Victoria', 'Allison', 'Moira'];
-  for (const name of prefer) {
-    const hit = voices.find((v) => v.lang.startsWith('en') && v.name.includes(name));
-    if (hit) return hit;
-  }
-  return voices.find((v) => v.lang.startsWith('en-US')) ?? voices.find((v) => v.lang.startsWith('en'));
-}
-
-function pause(ms: number): Promise<void> {
-  return new Promise((r) => setTimeout(r, ms));
-}
-
 export async function speakWithBrowserTTS(text: string): Promise<void> {
   await speakBrowser(text, speakGeneration, { clara: true });
 }
@@ -294,20 +278,19 @@ async function speakBrowser(text: string, gen: number, options?: SpeakOptions): 
   if (!('speechSynthesis' in window)) return;
   if (gen !== speakGeneration) return;
 
-  console.log('[TTS] browser fallback');
+  console.warn('[TTS] Using browser voice fallback — ElevenLabs unavailable');
 
   const voices = await loadVoices();
   if (gen !== speakGeneration) return;
 
   window.speechSynthesis.cancel();
-  await pause(50);
+  await new Promise((r) => setTimeout(r, 80));
 
-  const claraMode = options?.clara ?? false;
-  const rate = claraMode ? CLARA_SPEECH_RATE : 0.92;
-  const pitch = claraMode ? CLARA_SPEECH_PITCH : 1.05;
-  const preferred = pickClaraVoice(voices);
+  const preferred =
+    voices.find((v) => v.name.includes('Samantha') && v.lang.startsWith('en')) ??
+    voices.find((v) => v.lang.startsWith('en-US'));
+
   const sentences = text.match(/[^.!?]+[.!?]*/g) ?? [text];
-
   let interrupted = false;
   const interrupt = () => {
     interrupted = true;
@@ -316,41 +299,27 @@ async function speakBrowser(text: string, gen: number, options?: SpeakOptions): 
   };
   interruptPlayback = interrupt;
 
-  const keepAlive = isIOSDevice()
-    ? window.setInterval(() => {
-        if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
-          window.speechSynthesis.pause();
-          window.speechSynthesis.resume();
-        }
-      }, 1000)
-    : null;
-
   try {
-    for (let i = 0; i < sentences.length; i++) {
+    for (const raw of sentences) {
       if (interrupted || gen !== speakGeneration) break;
-      const sentence = sentences[i].trim();
+      const sentence = raw.trim();
       if (!sentence) continue;
 
       await new Promise<void>((resolve) => {
-        const utterance = new SpeechSynthesisUtterance(sentence);
-        utterance.rate = rate;
-        utterance.pitch = pitch;
-        utterance.volume = CLARA_SPEECH_VOLUME;
-        utterance.lang = 'en-US';
-        if (preferred) utterance.voice = preferred;
-
-        const maxMs = Math.max(3000, sentence.length * 80);
-        const timer = window.setTimeout(resolve, maxMs);
+        const u = new SpeechSynthesisUtterance(sentence);
+        u.lang = 'en-US';
+        u.rate = 1.0;
+        u.pitch = 1.1;
+        u.volume = 1;
+        if (preferred) u.voice = preferred;
+        const timer = setTimeout(resolve, Math.max(4000, sentence.length * 70));
         const done = () => { clearTimeout(timer); resolve(); };
-        utterance.onend = done;
-        utterance.onerror = done;
-        window.speechSynthesis.speak(utterance);
+        u.onend = done;
+        u.onerror = done;
+        window.speechSynthesis.speak(u);
       });
-
-      if (claraMode && i < sentences.length - 1) await pause(CLARA_SENTENCE_PAUSE_MS);
     }
   } finally {
-    if (keepAlive) clearInterval(keepAlive);
     if (interruptPlayback === interrupt) interruptPlayback = null;
   }
 }

@@ -1,4 +1,5 @@
 import Dexie, { type Table } from 'dexie';
+import { FAMILY_PHOTOS } from '../lib/assets';
 
 export interface User {
   id?: number;
@@ -178,6 +179,42 @@ class RecallDB extends Dexie {
       familiarFaces: '++id, userId',
       careJournal: '++id, userId, timestamp',
       sleepLogs: '++id, userId, date',
+    });
+    this.version(5).stores({
+      users: '++id, name',
+      events: '++id, userId, timestamp, type, completed',
+      medicationLogs: '++id, userId, medicationName, timestamp',
+      acseScores: '++id, userId, timestamp',
+      supervisorAlerts: '++id, userId, timestamp, dismissed',
+      memoryAnchors: '++id, userId, generatedAt',
+      emergencyContacts: '++id, userId',
+      routineTasks: '++id, userId, period',
+      familiarFaces: '++id, userId',
+      careJournal: '++id, userId, timestamp',
+      sleepLogs: '++id, userId, date',
+    }).upgrade(async (tx) => {
+      const faces = await tx.table('familiarFaces').toArray();
+      for (const face of faces) {
+        const key = face.name.trim().toLowerCase() as keyof typeof FAMILY_PHOTOS;
+        const photo = FAMILY_PHOTOS[key];
+        if (photo && face.photoUrl !== photo) {
+          await tx.table('familiarFaces').update(face.id, { photoUrl: photo });
+        }
+      }
+
+      const contacts = await tx.table('emergencyContacts').toArray();
+      for (const contact of contacts) {
+        if (contact.name.trim().toLowerCase() !== 'susan') continue;
+        const user = await tx.table('users').get(contact.userId);
+        if (user?.caregiverName?.trim().toLowerCase() === 'susan') {
+          await tx.table('emergencyContacts').update(contact.id, {
+            name: 'Robert',
+            relationship: 'Grandson',
+            phone: '+15555550187',
+            isPrimary: false,
+          });
+        }
+      }
     });
   }
 }

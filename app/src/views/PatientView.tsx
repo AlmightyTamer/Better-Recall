@@ -21,6 +21,7 @@ import GoldenPathDemo from '../components/GoldenPathDemo';
 import MemoryPhotoRecap from '../components/MemoryPhotoRecap';
 import DashHero from '../components/DashHero';
 import SimpleRoutineChecklist from '../components/SimpleRoutineChecklist';
+import FlowerGarden from '../components/FlowerGarden';
 import { LOGO_URL } from '../lib/assets';
 
 type Tab = 'home' | 'voice' | 'meds' | 'events' | 'routine';
@@ -206,6 +207,7 @@ function HomeTab({
 
   return (
     <div className="home-tab studio-scroll">
+      <FlowerGarden />
       <DashHero greeting={timeGreeting()} firstName={firstName} dateLabel={dateLabel} />
 
       {dueMeds.length > 0 && (

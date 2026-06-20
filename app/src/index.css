@@ -1810,7 +1810,7 @@ h1, h2, h3,
   align-items: center;
   justify-content: center;
   gap: 28px;
-  background: linear-gradient(168deg, #F4F9FF 0%, #E8F2FC 50%, #F8FBFF 100%);
+  background: linear-gradient(168deg, #E8F4FF 0%, #D4EDF5 45%, #E2F5EA 100%);
   transition: opacity 0.55s ease;
 }
 .sl-splash--exit { opacity: 0; pointer-events: none; }
@@ -9249,3 +9249,186 @@ body, body * {
   margin-top: 4px;
   letter-spacing: 0.02em;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FORGET-ME-NOT THEME — blue & green calming palette + Clara petal animation
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --lg-bg:        rgba(224, 240, 255, 0.55);
+  --lg-bg-strong: rgba(210, 235, 248, 0.68);
+  --lg-border:    rgba(74, 144, 217, 0.28);
+  --lg-inset:     0 1px 0 rgba(255, 255, 255, 0.85) inset;
+  --lg-shadow:    0 8px 32px rgba(46, 109, 180, 0.12), 0 2px 8px rgba(46, 109, 180, 0.06);
+  --lg-text:      #1A2F5E;
+  --lg-text-muted:#4A6A8E;
+  --lg-text-hint: #7A9AB8;
+  --studio-card-bg: rgba(224, 240, 255, 0.52);
+  --studio-card-border: rgba(74, 144, 217, 0.25);
+  --studio-text: #1A2F5E;
+  --studio-text-muted: #4A6A8E;
+  --recall-coral: #2E6DB4;
+  --recall-lavender: #3D8B6E;
+  --recall-sage: #3D8B6E;
+}
+
+html, body {
+  background:
+    radial-gradient(ellipse at 12% 6%,  rgba(93, 212, 255, 0.35) 0%, transparent 50%),
+    radial-gradient(ellipse at 88% 14%, rgba(61, 139, 110, 0.28) 0%, transparent 46%),
+    radial-gradient(ellipse at 70% 88%, rgba(74, 144, 217, 0.22) 0%, transparent 48%),
+    radial-gradient(ellipse at 6% 78%,  rgba(125, 200, 160, 0.25) 0%, transparent 44%),
+    linear-gradient(160deg, #E8F4FF 0%, #D4EDF5 35%, #E2F5EA 68%, #EBF8FF 100%) !important;
+}
+
+.studio-header,
+.studio-tab-bar,
+.tab-bar,
+.dash-hero,
+.metric-card,
+.quick-tile,
+.familiar-face,
+.safety-circle,
+.safety-contact,
+.home-alert-strip,
+.state-recon-card,
+.where-am-i-card {
+  background: rgba(224, 240, 255, 0.55) !important;
+  border-color: rgba(74, 144, 217, 0.22) !important;
+}
+
+.studio-header,
+.studio-header * { color: var(--lg-text) !important; }
+.recall-logo-tap svg path,
+.recall-logo-tap svg circle { fill: unset !important; }
+
+.familiar-faces__header { color: #2E6DB4 !important; }
+.safety-circle__header { color: #3D8B6E !important; }
+.familiar-face__photo { border-color: rgba(74, 144, 217, 0.35) !important; }
+.safety-contact__call { color: #2E6DB4 !important; }
+
+.safety-contact__avatar {
+  overflow: hidden;
+  border: 2px solid rgba(74, 144, 217, 0.3);
+}
+.safety-contact__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* Clara forget-me-not petal breathing */
+.fm-clara {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.fm-clara__glow {
+  position: absolute;
+  inset: -12%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(93, 212, 255, 0.35) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+.fm-clara--active .fm-clara__glow {
+  opacity: 1;
+  animation: fmGlowPulse 2.4s ease-in-out infinite;
+}
+
+.fm-flower--idle .fm-flower__petal,
+.fm-flower--thinking .fm-flower__petal {
+  transform-origin: 100px 100px;
+  transform-box: fill-box;
+}
+.fm-flower--idle .fm-flower__petal { animation: fmPetalIdle 3.6s ease-in-out infinite; }
+.fm-flower--idle .fm-flower__petal--2 { animation-delay: 0.15s; }
+.fm-flower--idle .fm-flower__petal--3 { animation-delay: 0.3s; }
+.fm-flower--idle .fm-flower__petal--4 { animation-delay: 0.45s; }
+.fm-flower--idle .fm-flower__petal--5 { animation-delay: 0.6s; }
+
+.fm-flower--thinking .fm-flower__petal {
+  animation: fmPetalThink 1.1s ease-in-out infinite;
+}
+.fm-flower--thinking .fm-flower__petal--1 { animation-delay: 0s; }
+.fm-flower--thinking .fm-flower__petal--2 { animation-delay: 0.12s; }
+.fm-flower--thinking .fm-flower__petal--3 { animation-delay: 0.24s; }
+.fm-flower--thinking .fm-flower__petal--4 { animation-delay: 0.36s; }
+.fm-flower--thinking .fm-flower__petal--5 { animation-delay: 0.48s; }
+.fm-flower--thinking .fm-flower__core {
+  animation: fmCorePulse 1.1s ease-in-out infinite;
+}
+
+@keyframes fmPetalIdle {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+@keyframes fmPetalThink {
+  0%, 100% { transform: scale(0.88); }
+  50% { transform: scale(1.12); }
+}
+@keyframes fmCorePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+@keyframes fmGlowPulse {
+  0%, 100% { transform: scale(0.95); opacity: 0.6; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+
+/* Decorative forget-me-not garden on home */
+.flower-garden {
+  position: relative;
+  height: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.flower-garden__bloom {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  opacity: 0.22;
+  filter: drop-shadow(0 2px 6px rgba(46, 109, 180, 0.15));
+  animation: fmGardenFloat 6s ease-in-out infinite;
+}
+.flower-garden__bloom--1 { top: -8px; right: 12px; width: 32px; animation-delay: 0s; }
+.flower-garden__bloom--2 { top: 48px; left: 4px; width: 28px; opacity: 0.18; animation-delay: 1.2s; }
+.flower-garden__bloom--3 { top: 120px; right: 28px; width: 24px; opacity: 0.16; animation-delay: 2.4s; }
+.flower-garden__bloom--4 { top: 200px; left: 20px; width: 30px; opacity: 0.2; animation-delay: 0.8s; }
+
+@keyframes fmGardenFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-6px) rotate(8deg); }
+}
+
+.home-tab { position: relative; }
+.home-support-section .familiar-faces,
+.home-support-section .safety-circle {
+  position: relative;
+  z-index: 1;
+}
+
+/* Splash logo */
+.sl-logo-img {
+  filter: drop-shadow(0 8px 24px rgba(46, 109, 180, 0.25));
+}
+
+/* Override global black text force with navy */
+body *:not(.cv2-speech__line):not(.cv2-speech__line *):not(.med-tracker__take-btn):not(.studio-btn--primary):not(.disclaimer-card__cta):not(.comfort-mode-v2):not(.comfort-mode-v2 *) {
+  color: #1A2F5E;
+}
+.studio-tab { color: #7A9AB8 !important; }
+.studio-tab--active { color: #1A2F5E !important; }
+.metric-card__label,
+.metric-card__sub,
+.ios-section-label,
+.quick-tile__label,
+.dash-hero__date,
+.cv2-status,
+.cv2-mic-hint { color: #4A6A8E !important; }
+.studio-icon { color: #2E6DB4 !important; stroke: #2E6DB4 !important; }
+
+.cv2-flower { filter: drop-shadow(0 6px 20px rgba(46, 109, 180, 0.2)) !important; opacity: 1 !important; }

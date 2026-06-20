@@ -1,10 +1,11 @@
 import { db } from './db';
 import { memoryPhotoUrl } from '../lib/memoryPhotos';
+import { FAMILY_PHOTOS } from '../lib/assets';
 
 const MARGARET_HERO_PHOTO = memoryPhotoUrl('garden');
-const MARGARET_SUSAN_PHOTO = memoryPhotoUrl('dinner');
-const MARGARET_ROBERT_PHOTO = memoryPhotoUrl('picnic');
-const MARGARET_LILY_PHOTO = memoryPhotoUrl('porch');
+const MARGARET_SUSAN_PHOTO = FAMILY_PHOTOS.susan;
+const MARGARET_ROBERT_PHOTO = FAMILY_PHOTOS.robert;
+const MARGARET_LILY_PHOTO = FAMILY_PHOTOS.lily;
 
 function makeTime(base: Date, h: number, m = 0): string {
   const d = new Date(base);
@@ -245,7 +246,7 @@ async function seedUserExtras(
   });
 
   await db.emergencyContacts.bulkAdd([
-    { userId, name: caregiverName, relationship, phone, isPrimary: true },
+    { userId, name: 'Robert', relationship: 'Grandson', phone: '+15555550187', isPrimary: false },
     { userId, name: 'Dr. Chen', relationship: 'physician', phone: '+15555550311', isPrimary: false },
     { userId, name: 'Neighbor Tom', relationship: 'neighbor', phone: '+15555550456', isPrimary: false },
   ]);

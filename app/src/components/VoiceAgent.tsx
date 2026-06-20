@@ -11,7 +11,6 @@ import {
 } from '../lib/claraIntents';
 import {
   speak,
-  speakWithBrowserTTS,
   stopSpeaking,
   unlockAudioPlayback,
   primeSpeechSynthesis,
@@ -24,20 +23,10 @@ type VoiceState = 'idle' | 'listening' | 'thinking' | 'speaking';
 
 const POST_SPEAK_PAUSE_MS = 500;
 const CASCADE_DELAY_MS = 1_800;
-const TTS_TIMEOUT_MS = 30_000;
 
 async function speakAloud(text: string): Promise<void> {
-  try {
-    await Promise.race([
-      speak(text, { clara: true }),
-      new Promise<void>((_, reject) =>
-        setTimeout(() => reject(new Error('TTS timeout')), TTS_TIMEOUT_MS)
-      ),
-    ]);
-  } catch (err) {
-    console.warn('[Clara TTS] primary failed, browser fallback:', err);
-    await speakWithBrowserTTS(text);
-  }
+  unlockAudioPlayback();
+  await speak(text, { clara: true });
 }
 
 export default function VoiceAgent() {

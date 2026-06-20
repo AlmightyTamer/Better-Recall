@@ -156,7 +156,16 @@ async function handleGroqVision(body, env) {
 }
 
 async function handleTts(body, env) {
-  // Workers AI MeloTTS when no ElevenLabs key
+  // ElevenLabs first — MeloTTS sounds robotic and was shadowing the real voice
+  if (env.ELEVENLABS_API_KEY?.trim()) {
+    try {
+      return await elevenLabsTts(body, env);
+    } catch (err) {
+      console.error('ElevenLabs TTS failed:', err);
+    }
+  }
+
+  // MeloTTS only when ElevenLabs key is missing
   if (env.AI && body.text?.trim()) {
     try {
       const result = await env.AI.run('@cf/myshell-ai/melotts', {
@@ -168,7 +177,7 @@ async function handleTts(body, env) {
         const bytes = typeof audio === 'string' ? base64ToBytes(audio) : audio;
         if (bytes?.byteLength) {
           return new Response(bytes, {
-            headers: { ...CORS, 'Content-Type': 'audio/mpeg' },
+            headers: { ...CORS, 'Content-Type': 'audio/wav' },
           });
         }
       }
@@ -177,8 +186,11 @@ async function handleTts(body, env) {
     }
   }
 
-  requireSecret(env.ELEVENLABS_API_KEY, 'ELEVENLABS_API_KEY');
-  const voiceId = body.voiceId || 'EXAVITQu4vr4xnSDxMaL';
+  return json({ error: 'TTS not configured — set ELEVENLABS_API_KEY on worker' }, 503);
+}
+
+async function elevenLabsTts(body, env) {
+  const voiceId = body.voiceId || 'cgSgspJ2msm6clMCkdW9';
   const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
     method: 'POST',
     headers: {
@@ -189,12 +201,18 @@ async function handleTts(body, env) {
     body: JSON.stringify({
       text: body.text,
       model_id: body.model_id || 'eleven_turbo_v2_5',
-      voice_settings: body.voice_settings,
+      voice_settings: body.voice_settings ?? {
+        stability: 0.35,
+        similarity_boost: 0.9,
+        style: 0.55,
+        use_speaker_boost: true,
+        speed: 1.0,
+      },
     }),
   });
   if (!res.ok) {
     const detail = await res.text();
-    return new Response(detail, { status: res.status, headers: CORS });
+    throw new Error(`ElevenLabs ${res.status}: ${detail.slice(0, 120)}`);
   }
   return new Response(await res.arrayBuffer(), {
     headers: { ...CORS, 'Content-Type': 'audio/mpeg' },
