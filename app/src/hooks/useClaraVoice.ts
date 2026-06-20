@@ -1,46 +1,52 @@
 import { useCallback, useRef, useState } from 'react';
 import { GROQ_API_KEY } from '../env';
-import { proxyPost, usesApiProxy } from '../services/apiClient';
+import { proxyPost } from '../services/apiClient';
 
+// ── Constants ─────────────────────────────────────────────────────────────────
 const GROQ_TRANSCRIBE_URL = 'https://api.groq.com/openai/v1/audio/transcriptions';
 const WHISPER_MODEL = 'whisper-large-v3-turbo';
 
-const LISTEN_MAX_MS = 20_000;
-const SILENCE_AFTER_SPEECH_MS = 1_800;
-const MIN_SPEECH_MS = 400;
-const VAD_RMS_THRESHOLD = 0.010;
+const LISTEN_MAX_MS = 20_000;          // hard ceiling for one turn
+const SILENCE_AFTER_SPEECH_MS = 1_600; // stop N ms after last detected speech
+const MIN_SPEECH_MS = 300;             // ignore bursts shorter than this
+const VAD_THRESHOLD = 0.006;           // RMS amplitude — intentionally sensitive
 
-function isMobileDevice(): boolean {
+// ── Device Detection ──────────────────────────────────────────────────────────
+/** True only for genuine phones/tablets — NOT MacBooks with touchpads. */
+function isRealMobile(): boolean {
   if (typeof navigator === 'undefined') return false;
-  const ua = navigator.userAgent;
-  if (/iPhone|iPad|iPod|Android/i.test(ua)) return true;
-  return navigator.maxTouchPoints > 1 && /Macintosh/i.test(ua);
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 }
 
-function prefersRecorderMic(): boolean {
-  if (isMobileDevice()) return true;
-  if (typeof MediaRecorder === 'undefined') return false;
+function hasSpeechRecognition(): boolean {
   const w = window as Window & {
     SpeechRecognition?: unknown;
     webkitSpeechRecognition?: unknown;
   };
-  return !w.SpeechRecognition && !w.webkitSpeechRecognition;
+  return Boolean(w.SpeechRecognition ?? w.webkitSpeechRecognition);
 }
 
+/**
+ * Routing decision:
+ * - Real mobile devices → MediaRecorder + Groq Whisper (Speech API is unreliable in WebViews)
+ * - Desktop with Speech API → Web Speech API (zero latency, no upload needed)
+ * - Desktop without Speech API → MediaRecorder + Groq Whisper
+ */
+function useRecorderPath(): boolean {
+  return isRealMobile() || !hasSpeechRecognition();
+}
+
+// ── Audio helpers ─────────────────────────────────────────────────────────────
 function getSupportedMimeType(): string {
   if (typeof MediaRecorder === 'undefined') return '';
-  for (const type of ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/ogg']) {
-    try {
-      if (MediaRecorder.isTypeSupported(type)) return type;
-    } catch {
-      /* skip */
-    }
+  for (const t of ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/ogg']) {
+    try { if (MediaRecorder.isTypeSupported(t)) return t; } catch { /* skip */ }
   }
   return '';
 }
 
 function mimeToExt(mime: string): string {
-  if (mime.includes('mp4')) return 'mp4';
+  if (mime.includes('mp4')) return 'm4a';
   if (mime.includes('ogg')) return 'ogg';
   return 'webm';
 }
@@ -48,19 +54,49 @@ function mimeToExt(mime: string): string {
 function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
-      resolve(dataUrl.split(',')[1] ?? '');
-    };
+    reader.onload = () => resolve((reader.result as string).split(',')[1] ?? '');
     reader.onerror = () => reject(new Error('Could not read audio'));
     reader.readAsDataURL(blob);
   });
 }
 
+// ── Transcription — direct Groq first, proxy fallback ─────────────────────────
 async function transcribeBlob(blob: Blob, mimeType: string): Promise<string> {
-  if (blob.size < 1500) return '';
+  if (blob.size < 1_000) return '';
 
-  if (usesApiProxy()) {
+  const ext = mimeToExt(mimeType);
+
+  // 1️⃣ Direct Groq API (preferred — bypasses potentially stale proxy)
+  const apiKey = GROQ_API_KEY?.trim();
+  if (apiKey) {
+    try {
+      const fd = new FormData();
+      fd.append('file', blob, `audio.${ext}`);
+      fd.append('model', WHISPER_MODEL);
+      fd.append('language', 'en');
+      fd.append('response_format', 'json');
+
+      const res = await fetch(GROQ_TRANSCRIBE_URL, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}` },
+        body: fd,
+      });
+
+      if (res.ok) {
+        const data = (await res.json()) as { text?: string };
+        const text = (data.text ?? '').trim();
+        if (text) return text;
+      } else {
+        const errText = await res.text().catch(() => '');
+        console.warn('[Clara STT] Groq direct failed:', res.status, errText.slice(0, 120));
+      }
+    } catch (err) {
+      console.warn('[Clara STT] Groq direct threw:', err);
+    }
+  }
+
+  // 2️⃣ Proxy fallback
+  try {
     const audio = await blobToBase64(blob);
     const data = await proxyPost<{ text?: string }>('/api/groq/transcribe', {
       audio,
@@ -69,48 +105,13 @@ async function transcribeBlob(blob: Blob, mimeType: string): Promise<string> {
       language: 'en',
     });
     return (data.text ?? '').trim();
+  } catch (err) {
+    console.warn('[Clara STT] Proxy fallback failed:', err);
+    throw new Error('Could not transcribe audio — check your microphone and try again.');
   }
-
-  const apiKey = GROQ_API_KEY?.trim();
-  if (!apiKey) throw new Error('No Groq API key available for voice');
-
-  const formData = new FormData();
-  formData.append('file', blob, `audio.${mimeToExt(mimeType)}`);
-  formData.append('model', WHISPER_MODEL);
-  formData.append('language', 'en');
-  formData.append('response_format', 'json');
-
-  const res = await fetch(GROQ_TRANSCRIBE_URL, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${apiKey}` },
-    body: formData,
-  });
-
-  if (!res.ok) {
-    const err = await res.text().catch(() => '');
-    throw new Error(`Voice ${res.status}${err ? `: ${err.slice(0, 80)}` : ''}`);
-  }
-
-  const data = (await res.json()) as { text?: string };
-  return (data.text ?? '').trim();
 }
 
-type SpeechRecognitionResult = {
-  isFinal: boolean;
-  length: number;
-  [index: number]: { transcript: string };
-};
-
-type SpeechRecognitionResultList = {
-  length: number;
-  [index: number]: SpeechRecognitionResult;
-};
-
-type SpeechRecognitionEvent = {
-  results: SpeechRecognitionResultList;
-  resultIndex: number;
-};
-
+// ── Web Speech API path ───────────────────────────────────────────────────────
 type SpeechRecognitionInstance = {
   continuous: boolean;
   interimResults: boolean;
@@ -119,14 +120,16 @@ type SpeechRecognitionInstance = {
   start: () => void;
   stop: () => void;
   abort: () => void;
-  onresult: ((e: SpeechRecognitionEvent) => void) | null;
+  onresult: ((e: SpeechEvent) => void) | null;
   onerror: ((e: { error: string }) => void) | null;
   onend: (() => void) | null;
   onspeechstart: (() => void) | null;
   onspeechend: (() => void) | null;
 };
+type SpeechResultList = { length: number; [i: number]: { isFinal: boolean; length: number; [j: number]: { transcript: string } } };
+type SpeechEvent = { results: SpeechResultList };
 
-function extractTranscript(results: SpeechRecognitionResultList): string {
+function extractTranscript(results: SpeechResultList): string {
   let finals = '';
   let interim = '';
   for (let i = 0; i < results.length; i++) {
@@ -134,107 +137,90 @@ function extractTranscript(results: SpeechRecognitionResultList): string {
     if (results[i].isFinal) finals += seg;
     else interim += seg;
   }
-  return (finals + interim).trim() || finals.trim();
+  return (finals || interim).trim();
 }
 
-function listenWithSpeech(): Promise<string> {
+function listenWithSpeechAPI(abortSignal: { aborted: boolean }): Promise<string> {
   return new Promise((resolve, reject) => {
-    const SR = (window as Window & {
+    const w = window as Window & {
       SpeechRecognition?: new () => SpeechRecognitionInstance;
       webkitSpeechRecognition?: new () => SpeechRecognitionInstance;
-    }).SpeechRecognition ?? (window as Window & {
-      webkitSpeechRecognition?: new () => SpeechRecognitionInstance;
-    }).webkitSpeechRecognition;
+    };
+    const SR = w.SpeechRecognition ?? w.webkitSpeechRecognition;
+    if (!SR) { reject(new Error('Speech recognition not available')); return; }
 
-    if (!SR) {
-      reject(new Error('Speech recognition not supported'));
-      return;
-    }
-
-    const recognition = new SR();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'en-US';
-    recognition.maxAlternatives = 3;
+    const rec = new SR();
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.lang = 'en-US';
+    rec.maxAlternatives = 1;
 
     let settled = false;
     let bestText = '';
-    let heardSpeech = false;
     let silenceTimer: ReturnType<typeof setTimeout> | null = null;
     let maxTimer: ReturnType<typeof setTimeout> | null = null;
-    let lastResults: SpeechRecognitionResultList | null = null;
+    let lastResults: SpeechResultList | null = null;
 
     const finish = (text: string) => {
       if (settled) return;
       settled = true;
       if (silenceTimer) clearTimeout(silenceTimer);
       if (maxTimer) clearTimeout(maxTimer);
-      resolve(text);
+      resolve(text.trim());
     };
 
-    const scheduleSilenceStop = () => {
+    const scheduleSilence = () => {
       if (silenceTimer) clearTimeout(silenceTimer);
       silenceTimer = setTimeout(() => {
-        try {
-          recognition.stop();
-        } catch {
-          finish(bestText);
-        }
+        if (abortSignal.aborted) { finish(''); return; }
+        try { rec.stop(); } catch { finish(bestText); }
       }, SILENCE_AFTER_SPEECH_MS);
     };
 
-    recognition.onresult = (e: SpeechRecognitionEvent) => {
+    rec.onresult = (e: SpeechEvent) => {
       lastResults = e.results;
       const text = extractTranscript(e.results);
-      if (text) {
-        bestText = text;
-        heardSpeech = true;
-        scheduleSilenceStop();
-      }
+      if (text) { bestText = text; scheduleSilence(); }
     };
 
-    recognition.onspeechstart = () => {
-      heardSpeech = true;
+    rec.onspeechstart = () => {
       if (silenceTimer) clearTimeout(silenceTimer);
     };
 
-    recognition.onspeechend = () => {
-      if (heardSpeech) scheduleSilenceStop();
+    rec.onspeechend = () => {
+      if (bestText) scheduleSilence();
     };
 
-    recognition.onerror = (e: { error: string }) => {
+    rec.onerror = (e: { error: string }) => {
       if (settled || e.error === 'aborted') return;
       if (e.error === 'no-speech') {
-        try {
-          recognition.stop();
-        } catch {
-          finish(bestText);
-        }
+        try { rec.stop(); } catch { finish(''); }
         return;
       }
       settled = true;
-      reject(new Error(e.error));
+      if (e.error === 'not-allowed') {
+        reject(new Error('Microphone permission denied'));
+      } else {
+        reject(new Error(`Speech error: ${e.error}`));
+      }
     };
 
-    recognition.onend = () => {
+    rec.onend = () => {
       if (settled) return;
       if (lastResults) {
-        const final = extractTranscript(lastResults);
-        if (final.length > bestText.length) bestText = final;
+        const t = extractTranscript(lastResults);
+        if (t.length > bestText.length) bestText = t;
       }
       finish(bestText);
     };
 
     maxTimer = setTimeout(() => {
-      try {
-        recognition.stop();
-      } catch {
-        finish(bestText);
-      }
+      try { rec.stop(); } catch { finish(bestText); }
     }, LISTEN_MAX_MS);
 
+    if (abortSignal.aborted) { resolve(''); return; }
     try {
-      recognition.start();
+      rec.start();
     } catch (err) {
       settled = true;
       reject(err instanceof Error ? err : new Error('Could not start microphone'));
@@ -242,12 +228,13 @@ function listenWithSpeech(): Promise<string> {
   });
 }
 
-function listenWithRecorder(signal: { aborted: boolean }): Promise<string> {
+// ── MediaRecorder + Whisper path ──────────────────────────────────────────────
+function listenWithRecorder(abortSignal: { aborted: boolean }): Promise<string> {
   return new Promise((resolve, reject) => {
     navigator.mediaDevices
-      .getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } })
+      .getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } })
       .then(async (stream) => {
-        if (signal.aborted) {
+        if (abortSignal.aborted) {
           stream.getTracks().forEach((t) => t.stop());
           resolve('');
           return;
@@ -255,12 +242,13 @@ function listenWithRecorder(signal: { aborted: boolean }): Promise<string> {
 
         const mimeType = getSupportedMimeType();
         const chunks: Blob[] = [];
-        const audioContext = new AudioContext();
-        await audioContext.resume().catch(() => undefined);
 
-        const source = audioContext.createMediaStreamSource(stream);
-        const analyser = audioContext.createAnalyser();
-        analyser.fftSize = 2048;
+        // AudioContext for VAD
+        const audioCtx = new AudioContext();
+        await audioCtx.resume().catch(() => {});
+        const source = audioCtx.createMediaStreamSource(stream);
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 1024;
         source.connect(analyser);
 
         const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
@@ -268,17 +256,20 @@ function listenWithRecorder(signal: { aborted: boolean }): Promise<string> {
         let speechStarted = false;
         let speechStartedAt = 0;
         let lastLoudAt = 0;
-        let vadFrame = 0;
+        let rafId = 0;
         let maxTimer: ReturnType<typeof setTimeout> | null = null;
+        let stopped = false;
 
         const cleanup = () => {
           if (maxTimer) clearTimeout(maxTimer);
-          cancelAnimationFrame(vadFrame);
+          cancelAnimationFrame(rafId);
           stream.getTracks().forEach((t) => t.stop());
-          void audioContext.close().catch(() => undefined);
+          audioCtx.close().catch(() => {});
         };
 
-        const stopRecorder = () => {
+        const doStop = () => {
+          if (stopped) return;
+          stopped = true;
           if (recorder.state === 'recording') recorder.stop();
         };
 
@@ -288,88 +279,73 @@ function listenWithRecorder(signal: { aborted: boolean }): Promise<string> {
 
         recorder.onstop = async () => {
           cleanup();
-          if (signal.aborted) {
-            resolve('');
-            return;
-          }
+          if (abortSignal.aborted) { resolve(''); return; }
           try {
             const blob = new Blob(chunks, { type: mimeType || 'audio/webm' });
+            console.log('[Clara STT] Blob size:', blob.size, 'type:', mimeType);
             const text = await transcribeBlob(blob, mimeType || 'audio/webm');
             resolve(text);
           } catch (err) {
-            reject(err instanceof Error ? err : new Error('Could not understand speech'));
+            reject(err instanceof Error ? err : new Error('Transcription failed'));
           }
         };
 
-        recorder.onerror = () => {
-          cleanup();
-          reject(new Error('Recording error'));
-        };
+        recorder.onerror = () => { cleanup(); reject(new Error('Recording error')); };
 
-        const monitorVolume = () => {
-          if (signal.aborted) {
-            stopRecorder();
-            return;
-          }
+        // VAD loop — runs every animation frame
+        const vad = () => {
+          if (abortSignal.aborted || stopped) { doStop(); return; }
 
-          const data = new Uint8Array(analyser.fftSize);
-          analyser.getByteTimeDomainData(data);
+          const buf = new Uint8Array(analyser.fftSize);
+          analyser.getByteTimeDomainData(buf);
           let sum = 0;
-          for (let i = 0; i < data.length; i++) {
-            const sample = (data[i] - 128) / 128;
-            sum += sample * sample;
+          for (let i = 0; i < buf.length; i++) {
+            const s = (buf[i] - 128) / 128;
+            sum += s * s;
           }
-          const rms = Math.sqrt(sum / data.length);
+          const rms = Math.sqrt(sum / buf.length);
           const now = Date.now();
 
-          if (rms > VAD_RMS_THRESHOLD) {
-            if (!speechStarted) speechStartedAt = now;
-            speechStarted = true;
+          if (rms > VAD_THRESHOLD) {
+            if (!speechStarted) { speechStarted = true; speechStartedAt = now; }
             lastLoudAt = now;
-          } else if (
-            speechStarted &&
-            now - lastLoudAt >= SILENCE_AFTER_SPEECH_MS &&
-            now - speechStartedAt >= MIN_SPEECH_MS
-          ) {
-            stopRecorder();
+          } else if (speechStarted && now - lastLoudAt >= SILENCE_AFTER_SPEECH_MS && now - speechStartedAt >= MIN_SPEECH_MS) {
+            console.log('[Clara STT] VAD: silence detected, stopping');
+            doStop();
             return;
           }
 
           if (now - startedAt >= LISTEN_MAX_MS) {
-            stopRecorder();
+            console.log('[Clara STT] VAD: max time reached');
+            doStop();
             return;
           }
 
-          vadFrame = requestAnimationFrame(monitorVolume);
+          rafId = requestAnimationFrame(vad);
         };
 
-        recorder.start(200);
-        vadFrame = requestAnimationFrame(monitorVolume);
-        maxTimer = setTimeout(stopRecorder, LISTEN_MAX_MS + 500);
+        recorder.start(100);
+        rafId = requestAnimationFrame(vad);
+        maxTimer = setTimeout(doStop, LISTEN_MAX_MS + 1000);
       })
       .catch((err) => {
-        reject(err instanceof Error ? err : new Error('Microphone access denied'));
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.toLowerCase().includes('denied') || msg.toLowerCase().includes('not-allowed')) {
+          reject(new Error('Microphone permission denied'));
+        } else {
+          reject(new Error('Could not access microphone'));
+        }
       });
   });
 }
 
-/** Hands-free Clara mic — recorder on mobile, speech API on desktop. No live transcript UI. */
+// ── Public hook ───────────────────────────────────────────────────────────────
 export function useClaraVoice() {
   const [isListening, setIsListening] = useState(false);
   const abortRef = useRef(false);
-  const activeRecognitionRef = useRef<SpeechRecognitionInstance | null>(null);
-  const activeStreamRef = useRef<MediaStream | null>(null);
 
   const stopListening = useCallback(() => {
     abortRef.current = true;
-    try {
-      activeRecognitionRef.current?.abort();
-    } catch {
-      activeRecognitionRef.current?.stop();
-    }
-    activeRecognitionRef.current = null;
-    activeStreamRef.current?.getTracks().forEach((t) => t.stop());
-    activeStreamRef.current = null;
     setIsListening(false);
   }, []);
 
@@ -377,19 +353,16 @@ export function useClaraVoice() {
     abortRef.current = false;
     setIsListening(true);
 
-    const signal = { get aborted() {
-      return abortRef.current;
-    } };
+    const signal = { get aborted() { return abortRef.current; } };
 
-    const run = prefersRecorderMic()
+    const run = useRecorderPath()
       ? listenWithRecorder(signal)
-      : listenWithSpeech();
+      : listenWithSpeechAPI(signal);
 
     return run
       .then((text) => {
-        if (abortRef.current) return '';
         setIsListening(false);
-        return text;
+        return abortRef.current ? '' : text;
       })
       .catch((err) => {
         setIsListening(false);
@@ -397,5 +370,10 @@ export function useClaraVoice() {
       });
   }, []);
 
-  return { isListening, startListening, stopListening, isMobileMic: prefersRecorderMic() };
+  return {
+    isListening,
+    startListening,
+    stopListening,
+    isRecorderMode: useRecorderPath(),
+  };
 }

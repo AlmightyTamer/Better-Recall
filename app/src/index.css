@@ -9037,3 +9037,34 @@ body, body * {
   background: radial-gradient(circle, rgba(142,202,230,0.8) 0%, transparent 70%);
   animation: mote-float linear infinite;
 }
+
+/* ── Live mic level meter (shown in recorder mode while listening) ── */
+.cv2-miclevel {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 10px;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cv2-miclevel__bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 32px;
+}
+
+.cv2-miclevel__bar {
+  width: 5px;
+  border-radius: 3px;
+  min-height: 4px;
+}
+
+.cv2-miclevel__label {
+  font-size: 11px;
+  color: var(--studio-text-muted, #8E8E93);
+  margin-top: 4px;
+  letter-spacing: 0.02em;
+}
