@@ -242,52 +242,100 @@ function loadVoices(): Promise<SpeechSynthesisVoice[]> {
   return voicesReady;
 }
 
+export async function speakWithBrowserTTS(text: string): Promise<void> {
+  return new Promise((resolve) => {
+    if (!window.speechSynthesis) { resolve(); return; }
+
+    window.speechSynthesis.cancel();
+
+    // Split into sentences for iOS reliability — long utterances get silently cut off
+    const sentences = text.match(/[^.!?]+[.!?]*/g) ?? [text];
+
+    let index = 0;
+    const speakNext = () => {
+      if (index >= sentences.length) { resolve(); return; }
+      const sentence = sentences[index++].trim();
+      if (!sentence) { speakNext(); return; }
+
+      const utterance = new SpeechSynthesisUtterance(sentence);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.88;
+      utterance.pitch = 1.1;
+      utterance.volume = 1.0;
+
+      const voices = window.speechSynthesis.getVoices();
+      const female = voices.find(v => v.lang.startsWith('en') && /female|samantha|victoria|karen|moira|fiona/i.test(v.name));
+      if (female) utterance.voice = female;
+
+      utterance.onend = speakNext;
+      utterance.onerror = speakNext;
+
+      window.speechSynthesis.speak(utterance);
+    };
+
+    // iOS needs a tiny delay after cancel()
+    setTimeout(speakNext, 50);
+  });
+}
+
 async function speakBrowser(text: string, gen: number, options?: SpeakOptions): Promise<void> {
   if (!('speechSynthesis' in window)) return;
   if (gen !== speakGeneration) return;
+
+  console.log('[TTS] Using browser speechSynthesis fallback');
 
   const voices = await loadVoices();
   if (gen !== speakGeneration) return;
 
   window.speechSynthesis.cancel();
 
+  // Split into sentences for iOS — single long utterances get silently cut off
+  const sentences = text.match(/[^.!?]+[.!?]*/g) ?? [text];
+
+  let interrupted = false;
+  const interrupt = () => {
+    interrupted = true;
+    window.speechSynthesis.cancel();
+    if (interruptPlayback === interrupt) interruptPlayback = null;
+  };
+  interruptPlayback = interrupt;
+
   await new Promise<void>((resolve) => {
-    if (gen !== speakGeneration) {
-      resolve();
-      return;
-    }
+    if (gen !== speakGeneration) { resolve(); return; }
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = options?.clara ? 0.88 : options?.warm ? 0.88 : 0.9;
-    utterance.pitch = options?.clara ? 1.1 : options?.warm ? 1.1 : 1.1;
-    utterance.volume = 1;
-    utterance.lang = 'en-US';
+    let index = 0;
 
-    const preferred =
-      voices.find((v) => v.name === 'Samantha' && v.lang.startsWith('en')) ??
-      voices.find((v) => v.name.includes('Samantha')) ??
-      voices.find((v) => v.lang.startsWith('en') && v.name.includes('Karen')) ??
-      voices.find((v) => v.lang.startsWith('en-US')) ??
-      voices.find((v) => v.lang.startsWith('en'));
+    const speakNext = () => {
+      if (interrupted || gen !== speakGeneration) { resolve(); return; }
+      if (index >= sentences.length) { resolve(); return; }
 
-    if (preferred) utterance.voice = preferred;
+      const sentence = sentences[index++].trim();
+      if (!sentence) { speakNext(); return; }
 
-    const finish = () => {
-      if (interruptPlayback === interrupt) interruptPlayback = null;
-      resolve();
+      const utterance = new SpeechSynthesisUtterance(sentence);
+      utterance.rate = options?.clara ? 0.88 : options?.warm ? 0.88 : 0.9;
+      utterance.pitch = 1.1;
+      utterance.volume = 1;
+      utterance.lang = 'en-US';
+
+      const preferred =
+        voices.find((v) => v.lang.startsWith('en') && /female|samantha|victoria|karen|moira|fiona/i.test(v.name)) ??
+        voices.find((v) => v.name === 'Samantha' && v.lang.startsWith('en')) ??
+        voices.find((v) => v.lang.startsWith('en') && v.name.includes('Karen')) ??
+        voices.find((v) => v.lang.startsWith('en-US')) ??
+        voices.find((v) => v.lang.startsWith('en'));
+
+      if (preferred) utterance.voice = preferred;
+
+      utterance.onend = speakNext;
+      utterance.onerror = speakNext;
+
+      window.speechSynthesis.speak(utterance);
     };
 
-    const interrupt = () => {
-      window.speechSynthesis.cancel();
-      finish();
-    };
-
-    interruptPlayback = interrupt;
-    utterance.onend = finish;
-    utterance.onerror = finish;
-
-    window.speechSynthesis.speak(utterance);
-
-    setTimeout(finish, Math.min(30000, text.length * 80 + 2000));
+    // iOS needs a short delay after cancel()
+    setTimeout(speakNext, 50);
   });
+
+  if (interruptPlayback === interrupt) interruptPlayback = null;
 }

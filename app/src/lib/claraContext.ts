@@ -1,6 +1,7 @@
 import { db, type User } from '../db/db';
 import { isMedicationDueSoon } from './schedule';
 import { analyzeSleep, formatSleepDuration, lastNightDate, qualityLabel } from './sleep';
+import { loadRoutineEvents, loadTodayCompletions } from './routineUtils';
 
 export interface ClaraRichContext {
   userName: string;
@@ -24,6 +25,8 @@ export interface ClaraRichContext {
   familiarFaces: string[];
   recentActivity: string[];
   emergencyNote?: string;
+  /** Routine events from localStorage (SimpleRoutineChecklist) */
+  routineEvents: { name: string; time: string; done: boolean }[];
 }
 
 function todayStart(): Date {
@@ -106,6 +109,15 @@ export async function buildClaraRichContext(
 
   const firstName = user?.name?.split(' ')[0] ?? 'friend';
 
+  // Load routine events from localStorage (SimpleRoutineChecklist)
+  const lsRoutineEvents = loadRoutineEvents();
+  const lsCompletions = loadTodayCompletions();
+  const routineEvents = lsRoutineEvents.map((e) => ({
+    name: e.name,
+    time: e.time,
+    done: Boolean(lsCompletions[e.id]),
+  }));
+
   return {
     userName: user?.name ?? 'Margaret',
     firstName,
@@ -128,6 +140,7 @@ export async function buildClaraRichContext(
     familiarFaces,
     recentActivity,
     emergencyNote: user?.emergencyNote,
+    routineEvents,
   };
 }
 

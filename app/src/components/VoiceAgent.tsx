@@ -10,6 +10,7 @@ import {
   type MemoryRecapReason,
 } from '../lib/claraIntents';
 import { speak, stopSpeaking, unlockAudioPlayback } from '../services/elevenlabs';
+import { addRoutineEvent, parseRoutineUtterance } from '../lib/routineUtils';
 import StudioIcon, { type IconName } from './StudioIcon';
 import ClaraFlowerPulse from './ClaraFlowerPulse';
 
@@ -69,12 +70,14 @@ export default function VoiceAgent() {
     stopListening();
     setClaraLine(response);
     setState('speaking');
+    console.log('[Clara] Speaking:', response.slice(0, 50));
     try {
       unlockAudioPlayback();
       await speak(response, { clara: true });
     } catch (err) {
       console.error('[Clara TTS]', err);
     }
+    // Give iOS time to finish audio before mic opens
     await new Promise<void>((r) => setTimeout(r, POST_SPEAK_PAUSE_MS));
     if (sessionActiveRef.current || force) setState('idle');
   }, [stopListening]);
@@ -108,7 +111,23 @@ export default function VoiceAgent() {
     const ctx = await buildClaraRichContext(user, acseScore);
     let response: string;
 
-    if (intent.tailoredFirst) {
+    // Handle add_routine directly — no LLM needed
+    if (intent.intent === 'add_routine') {
+      const parsed = parseRoutineUtterance(trimmed);
+      if (parsed) {
+        addRoutineEvent(parsed.name, parsed.time);
+        const timeClause = parsed.time ? ` at ${parsed.time}` : '';
+        response = `I've added "${parsed.name}"${timeClause} to your routine, ${firstName}. You can see it in the Routine tab.`;
+      } else {
+        response = `I'd love to add that to your routine, ${firstName} — could you tell me what to add and what time?`;
+      }
+    // Handle query_routine directly
+    } else if (intent.intent === 'query_routine') {
+      response = getTailoredResponse('query_routine', ctx);
+    // Handle time/date directly
+    } else if (intent.intent === 'time_date') {
+      response = getTailoredResponse('time_date', ctx);
+    } else if (intent.tailoredFirst) {
       response = getTailoredResponse(intent.intent, ctx);
     } else {
       try {
@@ -157,6 +176,8 @@ export default function VoiceAgent() {
         }
 
         await processUtterance(heard);
+        // Brief pause so iOS finishes audio cleanup before mic opens
+        if (sessionActiveRef.current) await new Promise<void>((r) => setTimeout(r, 500));
         // After speaking, loop back to listen again (if still active)
       } catch (err) {
         console.error('[Clara voice]', err);

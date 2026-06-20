@@ -12,7 +12,9 @@ export type ClaraIntent =
   | 'loneliness'
   | 'disorientation'
   | 'greeting'
-  | 'thanks';
+  | 'thanks'
+  | 'add_routine'
+  | 'query_routine';
 
 export type ClaraCascade = 'memory_recap' | 'comfort_mode' | 'none';
 
@@ -80,6 +82,22 @@ const DISORIENTATION_PATTERNS = [
   /\bwhere is\b.*\b(my|the)\b/i,
 ];
 
+const ADD_ROUTINE_PATTERNS = [
+  /\badd (.+?) to (my )?routine\b/i,
+  /\bremind me to (.+?) at\b/i,
+  /\bput (.+?) on my (schedule|routine)\b/i,
+  /\badd (.+?) at .+ to (my )?routine\b/i,
+  /\bschedule (.+?) at\b/i,
+];
+
+const QUERY_ROUTINE_PATTERNS = [
+  /\bwhat('?s| is) on my routine\b/i,
+  /\bwhat do i have today\b/i,
+  /\bwhat('?s| is) my (daily )?routine\b/i,
+  /\bshow me my routine\b/i,
+  /\bwhat('?s| is) on my (schedule|list) today\b/i,
+];
+
 const GREETING_PATTERNS = [
   /^(hi|hello|hey|good morning|good afternoon|good evening)\b/i,
 ];
@@ -134,6 +152,14 @@ export function detectClaraIntent(text: string): ClaraIntentResult {
       cascade: 'comfort_mode',
       tailoredFirst: true,
     };
+  }
+
+  if (ADD_ROUTINE_PATTERNS.some((p) => p.test(t))) {
+    return { intent: 'add_routine', cascade: 'none', tailoredFirst: true };
+  }
+
+  if (QUERY_ROUTINE_PATTERNS.some((p) => p.test(t))) {
+    return { intent: 'query_routine', cascade: 'none', tailoredFirst: true };
   }
 
   if (GREETING_PATTERNS.some((p) => p.test(t))) {
@@ -195,6 +221,24 @@ export function getTailoredResponse(intent: ClaraIntent, ctx: ClaraRichContext):
       }
       return `Your medicines are ${lines.join(', ')}. ${caregiverName} helps make sure you stay on track.`;
     }
+
+    case 'query_routine': {
+      if (ctx.routineEvents.length === 0) {
+        return `You don't have any routine items set up yet, ${firstName}. You can ask me to add something and I'll take care of it.`;
+      }
+      const done = ctx.routineEvents.filter((e) => e.done);
+      const pending = ctx.routineEvents.filter((e) => !e.done);
+      const parts: string[] = [];
+      if (done.length) parts.push(`You've already completed ${done.map((e) => e.name).join(', ')}`);
+      if (pending.length) {
+        const next = pending.slice(0, 3).map((e) => e.time ? `${e.name} at ${e.time}` : e.name).join(', ');
+        parts.push(`still coming up: ${next}`);
+      }
+      return `${firstName}, here's your routine today. ${parts.join('. ')}.`;
+    }
+
+    case 'add_routine':
+      return `I've added that to your routine, ${firstName}. You can check it in the Routine tab.`;
 
     case 'greeting':
       return `Hello, ${firstName}! It's ${timeStr}. I'm so glad you're here — what's on your mind?`;

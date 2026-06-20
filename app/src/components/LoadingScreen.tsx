@@ -19,7 +19,14 @@ export default function LoadingScreen() {
     >
       <div className="sl-splash-flower-wrap" aria-hidden>
         <div className="sl-splash-ring" />
-        <img src="/logo.png" alt="" className="sl-splash-logo" />
+        <img
+          src="/logo.png"
+          alt=""
+          className="sl-splash-logo"
+          width={140}
+          height={140}
+          onError={(e) => console.error('[LoadingScreen] logo.png failed to load', e)}
+        />
       </div>
 
       <p className="sl-splash-title" style={{ animationDelay: '0.3s' }}>

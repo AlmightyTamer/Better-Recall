@@ -1,20 +1,19 @@
 import { useRef, useState, type CSSProperties } from 'react';
 import { useAppStore } from '../store/appStore';
-import { triggerSOS, shareLocation, buildEmergencySms, dialNumber, dial911 } from '../lib/emergency';
-import { db } from '../db/db';
 import StudioIcon from './StudioIcon';
 
-const HOLD_MS = 1500;
+const HOLD_MS = 3000;
 
 interface Props { inline?: boolean; }
 
 export default function EmergencySOS({ inline = false }: Props) {
   const { user } = useAppStore();
-  const [active, setActive] = useState(false);
   const [holding, setHolding] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [tapHint, setTapHint] = useState(false);
   const holdTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTime = useRef(0);
+  const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   if (!user) return null;
 
@@ -27,6 +26,8 @@ export default function EmergencySOS({ inline = false }: Props) {
 
   const startHold = () => {
     setHolding(true);
+    setTapHint(false);
+    if (hintTimer.current) clearTimeout(hintTimer.current);
     startTime.current = Date.now();
     holdTimer.current = setInterval(() => {
       const elapsed = Date.now() - startTime.current;
@@ -34,21 +35,17 @@ export default function EmergencySOS({ inline = false }: Props) {
       setProgress(pct);
       if (elapsed >= HOLD_MS) {
         clearHold();
-        void activateSOS();
+        window.location.href = 'tel:911';
       }
     }, 50);
   };
 
-  const activateSOS = async () => {
-    setActive(true);
-    await triggerSOS(user);
-    const contacts = user.id
-      ? await db.emergencyContacts.where('userId').equals(user.id).toArray()
-      : [];
-    const location = await shareLocation(user);
-    const sms = buildEmergencySms(user, contacts, location);
-    if (user.caregiverPhone) {
-      window.location.href = `sms:${user.caregiverPhone}?body=${encodeURIComponent(sms)}`;
+  const handleTap = () => {
+    // Only fires if hold didn't complete (progress < 100)
+    if (!holding) {
+      setTapHint(true);
+      if (hintTimer.current) clearTimeout(hintTimer.current);
+      hintTimer.current = setTimeout(() => setTapHint(false), 3000);
     }
   };
 
@@ -57,9 +54,9 @@ export default function EmergencySOS({ inline = false }: Props) {
       <button
         type="button"
         className={inline ? `sos-inline tap-feedback ${holding ? 'sos-inline--holding' : ''}` : `sos-fab tap-feedback ${holding ? 'sos-fab--holding' : ''}`}
-        aria-label="Emergency SOS — hold to activate"
+        aria-label="Emergency SOS — hold 3 seconds to call 911"
         onPointerDown={startHold}
-        onPointerUp={clearHold}
+        onPointerUp={() => { clearHold(); handleTap(); }}
         onPointerLeave={clearHold}
         onPointerCancel={clearHold}
         style={inline ? { '--progress': `${progress}%` } as CSSProperties : undefined}
@@ -69,24 +66,15 @@ export default function EmergencySOS({ inline = false }: Props) {
         <span className={inline ? 'sos-inline__label' : 'sos-fab__label'}>SOS</span>
       </button>
 
-      {active && (
-        <div className="sos-modal" role="dialog" aria-modal="true">
-          <div className="sos-modal__card card">
-            <StudioIcon name="alert" size={36} />
-            <h2 className="sos-modal__title">Help is on the way</h2>
-            <p className="sos-modal__text">
-              Your caregiver has been notified. Stay where you are — you are safe.
-            </p>
-            <div className="sos-modal__actions">
-              {user.caregiverPhone && (
-                <button type="button" className="studio-btn studio-btn--primary tap-feedback" onClick={() => dialNumber(user.caregiverPhone!)}>
-                  Call {user.caregiverName}
-                </button>
-              )}
-              <button type="button" className="studio-btn studio-btn--ghost tap-feedback" onClick={dial911}>Call 911</button>
-              <button type="button" className="studio-btn studio-btn--text tap-feedback" onClick={() => setActive(false)}>I'm okay now</button>
-            </div>
-          </div>
+      {tapHint && (
+        <div style={{
+          position: 'fixed', bottom: 100, left: '50%', transform: 'translateX(-50%)',
+          background: 'rgba(20,20,30,0.92)', color: '#fff',
+          padding: '10px 20px', borderRadius: 20, fontSize: 14, fontWeight: 600,
+          zIndex: 9999, pointerEvents: 'none', whiteSpace: 'nowrap',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+        }}>
+          Hold for 3 seconds to call 911
         </div>
       )}
     </>

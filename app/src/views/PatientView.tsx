@@ -59,7 +59,7 @@ export default function PatientView() {
   const [moreOpen, setMoreOpen] = useState(false);
   const logoTaps = useRef(0);
   const logoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { user, acseScore, demoMode, setDemoMode, comfortModeActive, triggerMemoryRecap, setPro } = useAppStore();
+  const { user, acseScore, demoMode, setDemoMode, comfortModeActive, triggerMemoryRecap } = useAppStore();
   const { recordNavigation } = useACSE();
 
   // Activity is recorded on tab navigation only — not on every tap.
@@ -91,26 +91,18 @@ export default function PatientView() {
     <StudioShell
       contentKey={activeTab}
       header={
-        <div className="studio-header">
+        <div className="studio-header" style={{ position: 'relative' }}>
           <button type="button" className="recall-logo-tap tap-feedback" onClick={handleLogoTap} aria-label="Recall">
             <RecallLogo size="sm" />
           </button>
-          <div className="studio-header__actions">
+          <img
+            src="/logo.png"
+            alt=""
+            style={{ width: 40, height: 40, objectFit: 'contain', position: 'absolute', right: 16, top: 12, borderRadius: 10 }}
+          />
+          <div className="studio-header__actions" style={{ paddingRight: 56 }}>
             <EmergencySOS inline />
             <ThemeToggle />
-            {/* Demo: Upgrade to Pro */}
-            <button
-              onClick={() => setPro(true)}
-              style={{
-                fontSize: 11, fontWeight: 800, letterSpacing: '0.05em',
-                color: '#D4AF37', background: 'rgba(212,175,55,0.15)',
-                border: '1px solid rgba(212,175,55,0.35)',
-                borderRadius: 8, padding: '4px 10px', cursor: 'pointer',
-              }}
-              aria-label="Try Recall Pro"
-            >
-              ✦ Pro
-            </button>
             <button
               onClick={() => setSettingsOpen(true)}
               className="studio-icon-btn tap-feedback"

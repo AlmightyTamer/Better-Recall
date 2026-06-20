@@ -1754,6 +1754,22 @@ h1, h2, h3,
   0%, 100% { box-shadow: 0 0 0 0 rgba(74,144,217,0.30), 0 0 0 8px rgba(74,144,217,0.12); }
   50%       { box-shadow: 0 0 0 14px rgba(74,144,217,0.08), 0 0 0 26px rgba(74,144,217,0.04); }
 }
+@keyframes splashLogoIn {
+  from { opacity: 0; transform: scale(0.6); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes splashTextIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes splashOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes ringPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74,144,217,0.4); }
+  50%       { box-shadow: 0 0 0 20px rgba(74,144,217,0); }
+}
 
 .sl-splash-root {
   position: fixed;
@@ -1779,14 +1795,15 @@ h1, h2, h3,
   width: 172px;
   height: 172px;
   border-radius: 50%;
-  animation: splashIn 0.8s ease-out both, splashRingPulse 2.2s ease-in-out 0.8s infinite;
+  animation: splashLogoIn 0.8s ease-out both, ringPulse 2.2s ease-in-out 0.8s infinite;
 }
 
 .sl-splash-logo {
   width: 140px;
   height: 140px;
   object-fit: contain;
-  animation: splashIn 0.8s ease-out both;
+  border-radius: 28px;
+  animation: splashLogoIn 0.8s ease-out both;
 }
 
 .sl-splash-title {
@@ -1795,7 +1812,7 @@ h1, h2, h3,
   letter-spacing: 0.05em;
   color: #1A2F5E;
   margin: 0;
-  animation: splashFadeUp 0.6s ease-out both;
+  animation: splashTextIn 0.6s ease-out both;
 }
 
 .sl-splash-sub {
@@ -1803,7 +1820,7 @@ h1, h2, h3,
   color: #5A7A9E;
   letter-spacing: 0.1em;
   margin: 0;
-  animation: splashFadeUp 0.6s ease-out both;
+  animation: splashTextIn 0.6s ease-out both;
 }
 
 /* ── Legacy Loading Screen ── */
@@ -8828,46 +8845,6 @@ body, body * {
 }
 
 
-/* ══════════════════════════════════════════════════════════════════
-   RECALL PRO — Premium aurora background & tab styling
-   ══════════════════════════════════════════════════════════════════ */
-
-@keyframes pro-blob-drift {
-  0%   { transform: translate(0, 0) scale(1); opacity: 0.18; }
-  33%  { transform: translate(40px, -30px) scale(1.12); opacity: 0.24; }
-  66%  { transform: translate(-20px, 50px) scale(0.92); opacity: 0.16; }
-  100% { transform: translate(0, 0) scale(1); opacity: 0.18; }
-}
-
-.pro-aurora__blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  pointer-events: none;
-}
-
-.pro-aurora__blob--1 {
-  width: 420px; height: 420px;
-  top: -80px; left: -60px;
-  background: radial-gradient(circle, #6B4FA0 0%, transparent 70%);
-  animation: pro-blob-drift 18s ease-in-out infinite;
-}
-
-.pro-aurora__blob--2 {
-  width: 360px; height: 360px;
-  bottom: -60px; right: -40px;
-  background: radial-gradient(circle, #1A4A6E 0%, transparent 70%);
-  animation: pro-blob-drift 22s ease-in-out infinite reverse;
-  animation-delay: -7s;
-}
-
-.pro-aurora__blob--3 {
-  width: 300px; height: 300px;
-  top: 40%; left: 30%;
-  background: radial-gradient(circle, #4A3000 0%, transparent 70%);
-  animation: pro-blob-drift 16s ease-in-out infinite;
-  animation-delay: -4s;
-}
 
 /* ══════════════════════════════════════════════════════════════════
    COMFORT MODE V2 — Serene full-screen calming experience
