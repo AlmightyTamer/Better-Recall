@@ -20,18 +20,21 @@ import SettingsSheet from '../components/SettingsSheet';
 import GoldenPathDemo from '../components/GoldenPathDemo';
 import MemoryPhotoRecap from '../components/MemoryPhotoRecap';
 import DashHero from '../components/DashHero';
-import SimpleRoutineChecklist from '../components/SimpleRoutineChecklist';
+import RoutineChecklist from '../components/RoutineChecklist';
+import GameHub from '../components/games/GameHub';
+import { markGameRoutineComplete } from '../components/RoutineChecklist';
 import FlowerGarden from '../components/FlowerGarden';
 import { LOGO_URL } from '../lib/assets';
 
-type Tab = 'home' | 'voice' | 'meds' | 'events' | 'routine';
+type Tab = 'home' | 'voice' | 'meds' | 'events' | 'routine' | 'games';
 
 const TABS: { id: Tab; label: string; icon: IconName }[] = [
   { id: 'home',    label: 'Home',    icon: 'home' },
   { id: 'voice',   label: 'Clara',   icon: 'clara' },
   { id: 'meds',    label: 'Meds',    icon: 'meds' },
-  { id: 'events',  label: 'Today',   icon: 'events' },
+  { id: 'games',   label: 'Games',   icon: 'puzzle' },
   { id: 'routine', label: 'Routine', icon: 'routine' },
+  { id: 'events',  label: 'Today',   icon: 'events' },
 ];
 
 function eventIcon(type: Event['type']): IconName {
@@ -147,7 +150,10 @@ export default function PatientView() {
       {activeTab === 'voice' && <VoiceAgent />}
       {activeTab === 'meds' && <MedTracker />}
       {activeTab === 'events' && <EventsTab events={events ?? []} />}
-      {activeTab === 'routine' && <SimpleRoutineChecklist />}
+      {activeTab === 'games' && user?.id && (
+        <GamesTab userId={user.id} />
+      )}
+      {activeTab === 'routine' && <RoutineChecklist />}
       <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       {demoMode && (
         <GoldenPathDemo
@@ -163,7 +169,7 @@ export default function PatientView() {
 const QUICK_ACTIONS: { icon: IconName; label: string; color: string; tab?: Tab; action?: string }[] = [
   { icon: 'clara',   label: 'Clara',   color: 'transparent', tab: 'voice' },
   { icon: 'meds',    label: 'Meds',    color: 'transparent', tab: 'meds' },
-  { icon: 'events',  label: 'Today',   color: 'transparent', tab: 'events' },
+  { icon: 'puzzle',  label: 'Games',   color: 'transparent', tab: 'games' },
   { icon: 'routine', label: 'Routine', color: 'transparent', tab: 'routine' },
 ];
 
@@ -287,6 +293,16 @@ function HomeTab({
       </div>
 
       <div style={{ height: 20 }} />
+    </div>
+  );
+}
+
+function GamesTab({ userId }: { userId: number }) {
+  return (
+    <div className="studio-scroll" style={{ padding: '16px 16px 40px' }}>
+      <GameHub
+        onGameComplete={(gameId) => void markGameRoutineComplete(userId, gameId)}
+      />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { db } from './db';
 import { memoryPhotoUrl } from '../lib/memoryPhotos';
 import { FAMILY_PHOTOS } from '../lib/assets';
+import { DEFAULT_ROUTINES } from '../lib/defaultRoutines';
 
 const MARGARET_HERO_PHOTO = memoryPhotoUrl('garden');
 const MARGARET_SUSAN_PHOTO = FAMILY_PHOTOS.susan;
@@ -36,22 +37,6 @@ function demoEventTimes(now: Date): { past: (h: number, m?: number) => string; f
     },
   };
 }
-
-const DEFAULT_ROUTINES = [
-  { label: 'Brush teeth', period: 'morning' as const, sortOrder: 0 },
-  { label: 'Take morning medication', period: 'morning' as const, sortOrder: 1 },
-  { label: 'Eat breakfast', period: 'morning' as const, sortOrder: 2 },
-  { label: 'Morning walk or stretch', period: 'morning' as const, sortOrder: 3 },
-  { label: 'Daily Word puzzle', period: 'morning' as const, sortOrder: 4, gameId: 'wordle' as const },
-  { label: 'Afternoon rest or activity', period: 'afternoon' as const, sortOrder: 0 },
-  { label: 'Hydrate and snack', period: 'afternoon' as const, sortOrder: 1 },
-  { label: 'Sudoku challenge', period: 'afternoon' as const, sortOrder: 2, gameId: 'sudoku' as const },
-  { label: 'Word connections', period: 'afternoon' as const, sortOrder: 3, gameId: 'connections' as const },
-  { label: 'Eat dinner', period: 'evening' as const, sortOrder: 0 },
-  { label: 'Take evening medication', period: 'evening' as const, sortOrder: 1 },
-  { label: 'Prepare for bed', period: 'evening' as const, sortOrder: 2 },
-  { label: 'Log last night\'s sleep', period: 'morning' as const, sortOrder: 5 },
-];
 
 function seedSleepLogs(userId: number, now: Date): Promise<void> {
   const logs = [];
@@ -231,6 +216,25 @@ async function syncMargaretFamilyData(): Promise<void> {
         photoUrl: MARGARET_LILY_PHOTO,
         memoryPrompt: 'This is Lily, your cat. She sleeps on the sunny windowsill every afternoon.',
       });
+    }
+
+    await ensureRoutineGameTasks(user.id);
+  }
+}
+
+/** Ensure Wordle, Sudoku, and Connections are in Margaret's daily routine */
+async function ensureRoutineGameTasks(userId: number): Promise<void> {
+  const tasks = await db.routineTasks.where('userId').equals(userId).toArray();
+  const labels = new Set(tasks.map((t) => t.label));
+  const missing = DEFAULT_ROUTINES.filter((r) => !labels.has(r.label));
+  if (missing.length > 0) {
+    await db.routineTasks.bulkAdd(missing.map((r) => ({ ...r, userId })));
+  }
+  for (const task of tasks) {
+    if (!task.id) continue;
+    const template = DEFAULT_ROUTINES.find((r) => r.label === task.label);
+    if (template?.gameId && task.gameId !== template.gameId) {
+      await db.routineTasks.update(task.id, { gameId: template.gameId });
     }
   }
 }

@@ -50,6 +50,7 @@ export default function GameHub({ onGameComplete, compact }: GameHubProps) {
 
   const handleComplete = (id: CognitiveGameId) => {
     onGameComplete?.(id);
+    setActive(null);
   };
 
   const close = () => setActive(null);
@@ -61,8 +62,8 @@ export default function GameHub({ onGameComplete, compact }: GameHubProps) {
           <div className="mind-games__hero">
             <StudioIcon name="brain" size={28} />
             <div>
-              <h2 className="mind-games__title">Mind exercises</h2>
-              <p className="mind-games__sub">Daily puzzles to keep your brain engaged</p>
+              <h2 className="mind-games__title">Games</h2>
+              <p className="mind-games__sub">Daily Word, Sudoku, and Connections</p>
             </div>
           </div>
         )}

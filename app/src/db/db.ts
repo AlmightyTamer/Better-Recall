@@ -1,5 +1,6 @@
 import Dexie, { type Table } from 'dexie';
 import { FAMILY_PHOTOS } from '../lib/assets';
+import { DEFAULT_ROUTINES } from '../lib/defaultRoutines';
 
 export interface User {
   id?: number;
@@ -261,6 +262,36 @@ class RecallDB extends Dexie {
             phone: '+15555550187',
             isPrimary: false,
           });
+        }
+      }
+    });
+    this.version(7).stores({
+      users: '++id, name',
+      events: '++id, userId, timestamp, type, completed',
+      medicationLogs: '++id, userId, medicationName, timestamp',
+      acseScores: '++id, userId, timestamp',
+      supervisorAlerts: '++id, userId, timestamp, dismissed',
+      memoryAnchors: '++id, userId, generatedAt',
+      emergencyContacts: '++id, userId',
+      routineTasks: '++id, userId, period',
+      familiarFaces: '++id, userId',
+      careJournal: '++id, userId, timestamp',
+      sleepLogs: '++id, userId, date',
+    }).upgrade(async (tx) => {
+      const users = await tx.table('users').toArray();
+      for (const user of users) {
+        if (!user.id) continue;
+        const tasks = await tx.table('routineTasks').where('userId').equals(user.id).toArray();
+        const labels = new Set(tasks.map((t: { label: string }) => t.label));
+        for (const template of DEFAULT_ROUTINES) {
+          if (labels.has(template.label)) continue;
+          await tx.table('routineTasks').add({ ...template, userId: user.id });
+        }
+        for (const task of tasks) {
+          const template = DEFAULT_ROUTINES.find((r) => r.label === task.label);
+          if (template?.gameId && task.gameId !== template.gameId) {
+            await tx.table('routineTasks').update(task.id, { gameId: template.gameId });
+          }
         }
       }
     });
