@@ -18,7 +18,6 @@ import WhereAmICard from '../components/WhereAmICard';
 import RoutineChecklist from '../components/RoutineChecklist';
 import FamiliarFaces from '../components/FamiliarFaces';
 import SafetyCircle from '../components/SafetyCircle';
-import EmergencySOS from '../components/EmergencySOS';
 import SettingsSheet from '../components/SettingsSheet';
 import GoldenPathDemo from '../components/GoldenPathDemo';
 import MemoryPhotoRecap from '../components/MemoryPhotoRecap';
@@ -102,7 +101,6 @@ export default function PatientView() {
             style={{ width: 40, height: 40, objectFit: 'contain', position: 'absolute', right: 16, top: 12, borderRadius: 10 }}
           />
           <div className="studio-header__actions" style={{ paddingRight: 56 }}>
-            <EmergencySOS inline />
             <ThemeToggle />
             <button
               onClick={() => setSettingsOpen(true)}

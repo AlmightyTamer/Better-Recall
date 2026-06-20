@@ -9,15 +9,36 @@ import {
   getTailoredResponse,
   type MemoryRecapReason,
 } from '../lib/claraIntents';
-import { speak, stopSpeaking, unlockAudioPlayback } from '../services/elevenlabs';
+import {
+  speak,
+  speakWithBrowserTTS,
+  stopSpeaking,
+  unlockAudioPlayback,
+  primeSpeechSynthesis,
+} from '../services/elevenlabs';
 import { addRoutineEvent, parseRoutineUtterance } from '../lib/routineUtils';
 import StudioIcon, { type IconName } from './StudioIcon';
 import ClaraFlowerPulse from './ClaraFlowerPulse';
 
 type VoiceState = 'idle' | 'listening' | 'thinking' | 'speaking';
 
-const POST_SPEAK_PAUSE_MS = 800;
+const POST_SPEAK_PAUSE_MS = 500;
 const CASCADE_DELAY_MS = 1_800;
+const TTS_TIMEOUT_MS = 30_000;
+
+async function speakAloud(text: string): Promise<void> {
+  try {
+    await Promise.race([
+      speak(text, { clara: true }),
+      new Promise<void>((_, reject) =>
+        setTimeout(() => reject(new Error('TTS timeout')), TTS_TIMEOUT_MS)
+      ),
+    ]);
+  } catch (err) {
+    console.warn('[Clara TTS] primary failed, browser fallback:', err);
+    await speakWithBrowserTTS(text);
+  }
+}
 
 export default function VoiceAgent() {
   const user = useAppStore((s) => s.user);
@@ -65,21 +86,27 @@ export default function VoiceAgent() {
     setError('');
   }, [stopListening, firstName]);
 
-  const speakResponse = useCallback(async (response: string, force = false) => {
-    if (!force && !sessionActiveRef.current) return;
+  const speakResponse = useCallback(async (response: string) => {
+    if (!sessionActiveRef.current) return;
     stopListening();
     setClaraLine(response);
     setState('speaking');
-    console.log('[Clara] Speaking:', response.slice(0, 50));
+
     try {
       unlockAudioPlayback();
-      await speak(response, { clara: true });
+      await speakAloud(response);
     } catch (err) {
-      console.error('[Clara TTS]', err);
+      console.error('[Clara TTS] all methods failed:', err);
+    } finally {
+      await new Promise<void>((r) => setTimeout(r, POST_SPEAK_PAUSE_MS));
+      // Always leave speaking state — loop will set listening next
+      if (sessionActiveRef.current) {
+        setState('listening');
+        setClaraLine("I'm listening…");
+      } else {
+        setState('idle');
+      }
     }
-    // Give iOS time to finish audio before mic opens
-    await new Promise<void>((r) => setTimeout(r, POST_SPEAK_PAUSE_MS));
-    if (sessionActiveRef.current || force) setState('idle');
   }, [stopListening]);
 
   const runCascade = useCallback(
@@ -98,7 +125,7 @@ export default function VoiceAgent() {
   const processUtterance = useCallback(async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed) {
-      if (sessionActiveRef.current) setClaraLine("I didn't catch that — take your time and try again.");
+      if (sessionActiveRef.current) setClaraLine("I didn't catch that — go ahead.");
       return;
     }
 
@@ -111,20 +138,17 @@ export default function VoiceAgent() {
     const ctx = await buildClaraRichContext(user, acseScore);
     let response: string;
 
-    // Handle add_routine directly — no LLM needed
     if (intent.intent === 'add_routine') {
       const parsed = parseRoutineUtterance(trimmed);
       if (parsed) {
         addRoutineEvent(parsed.name, parsed.time);
         const timeClause = parsed.time ? ` at ${parsed.time}` : '';
-        response = `I've added "${parsed.name}"${timeClause} to your routine, ${firstName}. You can see it in the Routine tab.`;
+        response = `I've added "${parsed.name}"${timeClause} to your routine, ${firstName}.`;
       } else {
-        response = `I'd love to add that to your routine, ${firstName} — could you tell me what to add and what time?`;
+        response = `Tell me what to add and what time, ${firstName}.`;
       }
-    // Handle query_routine directly
     } else if (intent.intent === 'query_routine') {
       response = getTailoredResponse('query_routine', ctx);
-    // Handle time/date directly
     } else if (intent.intent === 'time_date') {
       response = getTailoredResponse('time_date', ctx);
     } else if (intent.tailoredFirst) {
@@ -152,14 +176,11 @@ export default function VoiceAgent() {
 
     if (intent.cascade === 'memory_recap') await runCascade('memory_recap', intent.recapReason);
     else if (intent.cascade === 'comfort_mode') await runCascade('comfort_mode');
-  }, [checkRepeatQuestion, user, acseScore, speakResponse, runCascade]);
+  }, [checkRepeatQuestion, user, acseScore, speakResponse, runCascade, firstName]);
 
-  const runSingleTurn = useCallback(async () => {
-    // Loop: listen → think → speak → listen → … until session ends
+  const runConversation = useCallback(async () => {
     while (sessionActiveRef.current) {
       try {
-        stopSpeaking();
-        await new Promise<void>((r) => setTimeout(r, 150));
         if (!sessionActiveRef.current) break;
 
         setState('listening');
@@ -170,36 +191,29 @@ export default function VoiceAgent() {
         if (!sessionActiveRef.current) break;
 
         if (!heard.trim()) {
-          // Nothing heard — keep looping so Clara stays ready
           setClaraLine("I'm still listening — go ahead.");
           continue;
         }
 
         await processUtterance(heard);
-        // Brief pause so iOS finishes audio cleanup before mic opens
-        if (sessionActiveRef.current) await new Promise<void>((r) => setTimeout(r, 500));
-        // After speaking, loop back to listen again (if still active)
+        // speakResponse sets state back to listening in its finally block
       } catch (err) {
         console.error('[Clara voice]', err);
         if (!sessionActiveRef.current) break;
         const msg = (err instanceof Error ? err.message : '').toLowerCase();
         if (msg.includes('denied') || msg.includes('not-allowed') || msg.includes('permission')) {
-          setError('Please allow microphone access — tap the mic icon in your browser address bar.');
+          setError('Please allow microphone access in your browser settings.');
           setClaraLine('Once the mic is allowed, tap below and we can talk.');
           sessionActiveRef.current = false;
           setInSession(false);
           setState('idle');
           return;
-        } else if (msg.includes('network') || msg.includes('fetch') || msg.includes('transcri')) {
-          setClaraLine("Having trouble connecting. Check your internet and try again.");
-        } else {
-          setClaraLine("I didn't quite catch that — try again.");
         }
-        // On non-fatal errors, keep the loop going
-        await new Promise<void>((r) => setTimeout(r, 800));
+        setClaraLine("Let's try again — I'm listening.");
+        setState('listening');
+        await new Promise<void>((r) => setTimeout(r, 600));
       }
     }
-    // Session ended
     sessionActiveRef.current = false;
     setInSession(false);
     setState('idle');
@@ -207,19 +221,26 @@ export default function VoiceAgent() {
 
   const handleMicTap = useCallback(() => {
     unlockAudioPlayback();
-    if (inSession) { stopSession(); return; }
+    primeSpeechSynthesis();
+
+    if (inSession) {
+      stopSession();
+      return;
+    }
+
     stopSpeaking();
     sessionActiveRef.current = true;
     setInSession(true);
     setError('');
-    void runSingleTurn();
-  }, [inSession, stopSession, runSingleTurn]);
+    void runConversation();
+  }, [inSession, stopSession, runConversation]);
 
   const handleTextSend = () => {
     const text = typedInput.trim();
     if (!text || inSession) return;
     setTypedInput('');
     unlockAudioPlayback();
+    primeSpeechSynthesis();
     stopSpeaking();
     stopListening();
     sessionActiveRef.current = true;
@@ -228,20 +249,19 @@ export default function VoiceAgent() {
     void processUtterance(text).finally(() => {
       sessionActiveRef.current = false;
       setInSession(false);
+      setState('idle');
     });
   };
 
-  const micIcon: IconName = (state === 'thinking' || state === 'speaking') ? 'close' : 'mic';
+  const micIcon: IconName = inSession ? 'close' : 'mic';
   const micHint =
     state === 'listening' ? 'Listening… speak now' :
     state === 'thinking'  ? 'Thinking…'            :
-    state === 'speaking'  ? 'Tap to stop'          :
+    state === 'speaking'  ? 'Clara is speaking…'     :
     'Tap to talk';
 
   return (
     <div className="cv2-room">
-
-      {/* ── Top bar ── */}
       <header className="cv2-header">
         <div className="cv2-header__dot cv2-header__dot--idle" />
         <span className="cv2-header__name">Clara</span>
@@ -253,26 +273,18 @@ export default function VoiceAgent() {
         {llmConnected === false && <span className="cv2-offline">Offline</span>}
       </header>
 
-      {/* ── Scrollable body ── */}
       <div className="cv2-body studio-scroll">
-
-        {/* Flower + wave */}
         <div className="cv2-stage">
           <ClaraFlowerPulse active={flowerActive} size={120} className="cv2-flower" />
           {state === 'listening' && (
             <div className="cv2-wave" aria-hidden>
               {[0, 1, 2, 3, 4].map((i) => (
-                <span
-                  key={i}
-                  className="cv2-wave__bar"
-                  style={{ animationDelay: `${i * 0.12}s` }}
-                />
+                <span key={i} className="cv2-wave__bar" style={{ animationDelay: `${i * 0.12}s` }} />
               ))}
             </div>
           )}
         </div>
 
-        {/* Speech / status text */}
         <div className="cv2-speech" aria-live="polite">
           {error     && <p className="cv2-speech__error">{error}</p>}
           {claraLine && <p className="cv2-speech__line">{claraLine}</p>}
@@ -281,13 +293,12 @@ export default function VoiceAgent() {
         <div style={{ flex: 1, minHeight: 16 }} />
       </div>
 
-      {/* ── Bottom input bar ── */}
       <div className="cv2-input-bar">
         <button
           type="button"
           className={`cv2-mic tap-feedback cv2-mic--${state}`}
           onClick={handleMicTap}
-          aria-label={state !== 'idle' ? 'Stop' : 'Talk to Clara'}
+          aria-label={inSession ? 'End conversation' : 'Talk to Clara'}
         >
           <span className="cv2-mic__ring" />
           <StudioIcon name={micIcon} size={32} />
@@ -302,7 +313,7 @@ export default function VoiceAgent() {
             onChange={(e) => setTypedInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') handleTextSend(); }}
             aria-label="Type a message to Clara"
-            disabled={inSession && state !== 'idle'}
+            disabled={inSession}
           />
           <button
             type="button"

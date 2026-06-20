@@ -1771,56 +1771,195 @@ h1, h2, h3,
   50%       { box-shadow: 0 0 0 20px rgba(74,144,217,0); }
 }
 
+@keyframes petalPop {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--petal-angle)) translateY(90px) scale(0.2);
+  }
+  60% {
+    opacity: 1;
+    transform: rotate(var(--petal-angle)) translateY(-46px) scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(var(--petal-angle)) translateY(-42px) scale(1);
+  }
+}
+@keyframes centerBloom {
+  0% { opacity: 0; transform: scale(0); }
+  70% { transform: scale(1.15); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes stemGrow {
+  from { opacity: 0; transform: scaleY(0); }
+  to   { opacity: 1; transform: scaleY(1); }
+}
+@keyframes leafUnfurl {
+  from { opacity: 0; transform: scale(0) rotate(var(--leaf-rot, 0deg)); }
+  to   { opacity: 1; transform: scale(1) rotate(var(--leaf-rot, 0deg)); }
+}
+@keyframes flowerGlow {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50%       { opacity: 0.65; transform: scale(1.12); }
+}
+@keyframes splashTitleIn {
+  from { opacity: 0; transform: translateY(20px); letter-spacing: 0.2em; }
+  to   { opacity: 1; transform: translateY(0); letter-spacing: 0.05em; }
+}
+@keyframes splashSubIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .sl-splash-root {
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: #F0F6FF;
+  background: linear-gradient(165deg, #F0F6FF 0%, #E3EEFB 45%, #F8FBFF 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: 24px;
+  transition: opacity 0.6s ease;
+}
+.sl-splash-root--exit {
+  opacity: 0;
+  pointer-events: none;
 }
 
-.sl-splash-flower-wrap {
+.sl-flower-stage {
   position: relative;
+  width: 200px;
+  height: 220px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.sl-splash-ring {
+.sl-flower-glow {
   position: absolute;
-  width: 172px;
-  height: 172px;
+  width: 160px;
+  height: 160px;
   border-radius: 50%;
-  animation: splashLogoIn 0.8s ease-out both, ringPulse 2.2s ease-in-out 0.8s infinite;
+  background: radial-gradient(circle, rgba(74,144,217,0.35) 0%, transparent 70%);
+  top: 10px;
+  animation: flowerGlow 2.4s ease-in-out infinite;
 }
 
-.sl-splash-logo {
-  width: 140px;
-  height: 140px;
-  object-fit: contain;
-  border-radius: 28px;
-  animation: splashLogoIn 0.8s ease-out both;
+.sl-flower-petals {
+  position: absolute;
+  top: 28px;
+  width: 0;
+  height: 0;
+}
+
+.sl-petal {
+  position: absolute;
+  width: 38px;
+  height: 52px;
+  margin-left: -19px;
+  margin-top: -52px;
+  border-radius: 50% 50% 45% 45%;
+  background: linear-gradient(160deg, #6BB3F0 0%, #4A90D9 55%, #2E6DB4 100%);
+  border: 2px solid rgba(46,109,180,0.35);
+  transform-origin: 50% 100%;
+  opacity: 0;
+  animation: petalPop 0.75s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  animation-delay: calc(var(--petal-i) * 0.1s);
+  box-shadow: 0 4px 12px rgba(74,144,217,0.25);
+}
+
+.sl-flower-center {
+  position: absolute;
+  top: 52px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  animation: centerBloom 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) 0.55s both;
+}
+.sl-flower-center__white {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  background: #fff;
+  border-radius: 50%;
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+.sl-flower-center__yellow {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: #FFD54F;
+  border-radius: 50%;
+}
+.sl-flower-center__dot {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: #1A2F5E;
+  border-radius: 50%;
+}
+
+.sl-flower-stem {
+  position: absolute;
+  top: 88px;
+  width: 5px;
+  height: 70px;
+  background: linear-gradient(180deg, #66BB6A, #4CAF50);
+  border-radius: 3px;
+  transform-origin: top center;
+  opacity: 0;
+  animation: stemGrow 0.45s ease-out 0.85s both;
+}
+.sl-flower-leaf {
+  position: absolute;
+  width: 22px;
+  height: 14px;
+  background: #4CAF50;
+  border-radius: 0 70% 0 70%;
+  border: 1.5px solid #388E3C;
+  opacity: 0;
+  animation: leafUnfurl 0.4s ease-out 1.05s both;
+}
+.sl-flower-leaf--left {
+  top: 118px;
+  left: 62px;
+  --leaf-rot: -35deg;
+  transform: rotate(-35deg);
+}
+.sl-flower-leaf--right {
+  top: 132px;
+  right: 62px;
+  --leaf-rot: 35deg;
+  transform: rotate(35deg) scaleX(-1);
 }
 
 .sl-splash-title {
-  font-size: 40px;
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 42px;
   font-weight: 700;
-  letter-spacing: 0.05em;
   color: #1A2F5E;
   margin: 0;
-  animation: splashTextIn 0.6s ease-out both;
+  opacity: 0;
 }
-
+.sl-splash-root--title .sl-splash-title,
+.sl-splash-root--exit .sl-splash-title {
+  animation: splashTitleIn 0.7s ease-out both;
+}
 .sl-splash-sub {
-  font-size: 14px;
+  font-size: 13px;
   color: #5A7A9E;
-  letter-spacing: 0.1em;
-  margin: 0;
-  animation: splashTextIn 0.6s ease-out both;
+  letter-spacing: 0.12em;
+  margin: -12px 0 0;
+  opacity: 0;
+}
+.sl-splash-root--title .sl-splash-sub,
+.sl-splash-root--exit .sl-splash-sub {
+  animation: splashSubIn 0.6s ease-out 0.25s both;
 }
 
 /* ── Legacy Loading Screen ── */
