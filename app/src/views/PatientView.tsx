@@ -13,9 +13,7 @@ import { db, type Event, type Medication } from '../db/db';
 import ThemeToggle from '../components/ThemeToggle';
 import { isMedicationDueSoon } from '../lib/schedule';
 import { logout } from '../lib/session';
-import MemoryThreads from '../components/MemoryThreads';
 import WhereAmICard from '../components/WhereAmICard';
-import RoutineChecklist from '../components/RoutineChecklist';
 import FamiliarFaces from '../components/FamiliarFaces';
 import SafetyCircle from '../components/SafetyCircle';
 import SettingsSheet from '../components/SettingsSheet';
@@ -56,7 +54,6 @@ function formatTime(ts: string): string {
 export default function PatientView() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
   const logoTaps = useRef(0);
   const logoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { user, acseScore, demoMode, setDemoMode, comfortModeActive, triggerMemoryRecap } = useAppStore();
@@ -66,7 +63,6 @@ export default function PatientView() {
 
   const handleTabChange = (tab: Tab) => {
     recordNavigation();
-    setMoreOpen(false);
     setActiveTab(tab);
   };
 
@@ -144,8 +140,6 @@ export default function PatientView() {
           firstName={firstName}
           acseScore={acseScore}
           medications={user?.medications ?? []}
-          moreOpen={moreOpen}
-          onToggleMore={() => setMoreOpen((v) => !v)}
           onMemoryRecap={() => triggerMemoryRecap('manual')}
         />
       )}
@@ -189,8 +183,6 @@ function HomeTab({
   firstName,
   acseScore,
   medications,
-  moreOpen,
-  onToggleMore,
   onMemoryRecap,
 }: {
   events: Event[];
@@ -198,8 +190,6 @@ function HomeTab({
   firstName: string;
   acseScore: number;
   medications: Medication[];
-  moreOpen: boolean;
-  onToggleMore: () => void;
   onMemoryRecap: () => void;
 }) {
   const now = new Date();
@@ -288,19 +278,11 @@ function HomeTab({
         </>
       )}
 
-      <button type="button" className="home-more-toggle tap-feedback" onClick={onToggleMore} aria-expanded={moreOpen}>
-        <StudioIcon name={moreOpen ? 'close' : 'add'} size={16} />
-        <span>{moreOpen ? 'Hide more' : 'Routines & support'}</span>
-      </button>
-
-      {moreOpen && (
-        <div className="home-more-panel animate-fadeIn">
-          <RoutineChecklist />
-          <MemoryThreads />
-          <FamiliarFaces />
-          <SafetyCircle />
-        </div>
-      )}
+      <p className="ios-section-label">People & support</p>
+      <div className="home-support-section">
+        <FamiliarFaces />
+        <SafetyCircle />
+      </div>
 
       <div style={{ height: 20 }} />
     </div>

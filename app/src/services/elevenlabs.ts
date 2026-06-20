@@ -15,6 +15,11 @@ let speakGeneration = 0;
 let interruptPlayback: (() => void) | null = null;
 let speakChain: Promise<void> = Promise.resolve();
 
+/** Clara's calming delivery — slow, warm, gentle */
+const CLARA_SPEECH_RATE = 0.72;
+const CLARA_SPEECH_PITCH = 0.92;
+const CLARA_SPEECH_VOLUME = 1.0;
+
 function isIOSDevice(): boolean {
   if (typeof navigator === 'undefined') return false;
   return /iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -179,7 +184,7 @@ async function fetchElevenLabsAudio(text: string, modelId: string, options?: Spe
   const warm = options?.warm ?? false;
   const voiceId = clara ? CLARA_VOICE_ID : VOICE_ID;
   const voice_settings = clara
-    ? { stability: 0.3, similarity_boost: 0.9, style: 0.8, use_speaker_boost: true, speed: 0.92 }
+    ? { stability: 0.42, similarity_boost: 0.88, style: 0.55, use_speaker_boost: true, speed: 0.82 }
     : warm
       ? { stability: 0.4, similarity_boost: 0.88, style: 0.6, use_speaker_boost: true, speed: 0.94 }
       : { stability: 0.55, similarity_boost: 0.8, style: 0.25, use_speaker_boost: true };
@@ -292,7 +297,7 @@ export async function speakWithBrowserTTS(text: string): Promise<void> {
 
   const voices = await loadVoices();
   const preferred =
-    voices.find((v) => v.lang.startsWith('en') && /samantha|victoria|karen|moira|fiona/i.test(v.name)) ??
+    voices.find((v) => v.lang.startsWith('en') && /samantha|karen|serena|moira|victoria/i.test(v.name)) ??
     voices.find((v) => v.lang.startsWith('en-US')) ??
     voices.find((v) => v.lang.startsWith('en'));
 
@@ -303,11 +308,11 @@ export async function speakWithBrowserTTS(text: string): Promise<void> {
     await new Promise<void>((resolve) => {
       const utterance = new SpeechSynthesisUtterance(sentence);
       utterance.lang = 'en-US';
-      utterance.rate = 0.88;
-      utterance.pitch = 1.1;
-      utterance.volume = 1;
+      utterance.rate = CLARA_SPEECH_RATE;
+      utterance.pitch = CLARA_SPEECH_PITCH;
+      utterance.volume = CLARA_SPEECH_VOLUME;
       if (preferred) utterance.voice = preferred;
-      const timer = setTimeout(resolve, Math.max(2500, sentence.length * 90));
+      const timer = setTimeout(resolve, Math.max(3000, sentence.length * 120));
       const done = () => { clearTimeout(timer); resolve(); };
       utterance.onend = done;
       utterance.onerror = done;
@@ -331,7 +336,7 @@ async function speakBrowser(text: string, gen: number, options?: SpeakOptions): 
 
   const sentences = text.match(/[^.!?]+[.!?]*/g) ?? [text];
   const preferred =
-    voices.find((v) => v.lang.startsWith('en') && /samantha|victoria|karen|moira|fiona/i.test(v.name)) ??
+    voices.find((v) => v.lang.startsWith('en') && /samantha|karen|serena|moira|victoria/i.test(v.name)) ??
     voices.find((v) => v.name === 'Samantha') ??
     voices.find((v) => v.lang.startsWith('en-US')) ??
     voices.find((v) => v.lang.startsWith('en'));
@@ -361,13 +366,14 @@ async function speakBrowser(text: string, gen: number, options?: SpeakOptions): 
 
       await new Promise<void>((resolve) => {
         const utterance = new SpeechSynthesisUtterance(sentence);
-        utterance.rate = options?.clara ? 0.88 : 0.9;
-        utterance.pitch = 1.1;
-        utterance.volume = 1;
+        const clara = options?.clara ?? false;
+        utterance.rate = clara ? CLARA_SPEECH_RATE : options?.warm ? 0.78 : 0.85;
+        utterance.pitch = clara ? CLARA_SPEECH_PITCH : 1.0;
+        utterance.volume = CLARA_SPEECH_VOLUME;
         utterance.lang = 'en-US';
         if (preferred) utterance.voice = preferred;
 
-        const maxMs = Math.max(2500, sentence.length * 90);
+        const maxMs = Math.max(3500, sentence.length * (clara ? 130 : 90));
         const timer = window.setTimeout(() => {
           console.warn('[TTS] utterance timeout, continuing');
           resolve();

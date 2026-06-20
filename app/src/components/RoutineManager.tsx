@@ -10,14 +10,17 @@ interface RoutineEvent {
 const EVENTS_KEY = 'recall_routine_events';
 
 const DEFAULT_EVENTS: RoutineEvent[] = [
-  { id: 'morning-med',    name: 'Morning Medication',  time: '8:00 AM' },
-  { id: 'breakfast',      name: 'Breakfast',           time: '8:30 AM' },
-  { id: 'morning-walk',   name: 'Morning Walk',        time: '9:30 AM' },
-  { id: 'lunch',          name: 'Lunch',               time: '12:30 PM' },
-  { id: 'afternoon-rest', name: 'Afternoon Rest',      time: '2:00 PM' },
-  { id: 'evening-med',    name: 'Evening Medication',  time: '6:00 PM' },
-  { id: 'dinner',         name: 'Dinner',              time: '7:00 PM' },
-  { id: 'bedtime',        name: 'Bedtime',             time: '9:30 PM' },
+  { id: 'morning-med',       name: 'Morning Medication',      time: '8:00 AM' },
+  { id: 'breakfast',         name: 'Breakfast',               time: '8:30 AM' },
+  { id: 'morning-walk',      name: 'Morning Walk',            time: '9:30 AM' },
+  { id: 'lunch',             name: 'Lunch',                   time: '12:30 PM' },
+  { id: 'afternoon-rest',    name: 'Afternoon Rest',          time: '2:00 PM' },
+  { id: 'hydrate-snack',     name: 'Hydrate and Snack',       time: '3:00 PM' },
+  { id: 'sudoku',            name: 'Sudoku Challenge',        time: '3:30 PM' },
+  { id: 'word-connections',  name: 'Word Connections',        time: '4:00 PM' },
+  { id: 'evening-med',       name: 'Evening Medication',      time: '6:00 PM' },
+  { id: 'dinner',            name: 'Dinner',                  time: '7:00 PM' },
+  { id: 'bedtime',           name: 'Bedtime',                 time: '9:30 PM' },
 ];
 
 function loadEvents(): RoutineEvent[] {
