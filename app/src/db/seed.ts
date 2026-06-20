@@ -144,6 +144,7 @@ export async function seedIfEmpty(): Promise<void> {
   const userCount = await db.users.count();
   if (userCount >= 1) {
     await seedExtendedData();
+    await syncMargaretFamilyData();
     return;
   }
 
@@ -171,6 +172,67 @@ export async function seedIfEmpty(): Promise<void> {
   });
 
   await seedUserExtras(userId, 'Susan', 'daughter', '+15555550142', t, now);
+  await syncMargaretFamilyData();
+}
+
+function normalizePhone(phone: string): string {
+  return phone.replace(/\D/g, '');
+}
+
+/** Keep Margaret demo photos + safety circle in sync on every app load */
+async function syncMargaretFamilyData(): Promise<void> {
+  const users = await db.users.toArray();
+  for (const user of users) {
+    if (user.name !== 'Margaret' || !user.id) continue;
+
+    const faces = await db.familiarFaces.where('userId').equals(user.id).toArray();
+    for (const face of faces) {
+      if (!face.id) continue;
+      const photo =
+        face.name === 'Susan' ? MARGARET_SUSAN_PHOTO
+        : face.name === 'Robert' ? MARGARET_ROBERT_PHOTO
+        : face.name === 'Lily' ? MARGARET_LILY_PHOTO
+        : null;
+      if (photo && face.photoUrl !== photo) {
+        await db.familiarFaces.update(face.id, { photoUrl: photo });
+      }
+    }
+
+    const caregiverPhone = normalizePhone(user.caregiverPhone ?? '');
+    const caregiverName = user.caregiverName?.trim().toLowerCase() ?? '';
+    const contacts = await db.emergencyContacts.where('userId').equals(user.id).toArray();
+
+    for (const contact of contacts) {
+      if (!contact.id) continue;
+      const sameName = contact.name.trim().toLowerCase() === caregiverName;
+      const samePhone = normalizePhone(contact.phone) === caregiverPhone;
+      if (sameName || samePhone) {
+        await db.emergencyContacts.delete(contact.id);
+      }
+    }
+
+    const remaining = await db.emergencyContacts.where('userId').equals(user.id).toArray();
+    const hasRobert = remaining.some((c) => c.name.trim().toLowerCase() === 'robert');
+    if (!hasRobert) {
+      await db.emergencyContacts.add({
+        userId: user.id,
+        name: 'Robert',
+        relationship: 'Grandson',
+        phone: '+15555550187',
+        isPrimary: false,
+      });
+    }
+
+    if (!faces.some((f) => f.name === 'Lily')) {
+      await db.familiarFaces.add({
+        userId: user.id,
+        name: 'Lily',
+        relationship: 'Cat',
+        photoUrl: MARGARET_LILY_PHOTO,
+        memoryPrompt: 'This is Lily, your cat. She sleeps on the sunny windowsill every afternoon.',
+      });
+    }
+  }
 }
 
 async function seedUserExtras(
@@ -307,14 +369,12 @@ async function seedExtendedData(): Promise<void> {
       await db.routineTasks.bulkAdd(DEFAULT_ROUTINES.map((r) => ({ ...r, userId: user.id! })));
     }
     const hasContacts = (await db.emergencyContacts.where('userId').equals(user.id).count()) > 0;
-    if (!hasContacts && user.caregiverPhone) {
-      await db.emergencyContacts.add({
-        userId: user.id,
-        name: user.caregiverName,
-        relationship: user.caregiverRelationship,
-        phone: user.caregiverPhone,
-        isPrimary: true,
-      });
+    if (!hasContacts && user.name === 'Margaret') {
+      await db.emergencyContacts.bulkAdd([
+        { userId: user.id, name: 'Robert', relationship: 'Grandson', phone: '+15555550187', isPrimary: false },
+        { userId: user.id, name: 'Dr. Chen', relationship: 'physician', phone: '+15555550311', isPrimary: false },
+        { userId: user.id, name: 'Neighbor Tom', relationship: 'neighbor', phone: '+15555550456', isPrimary: false },
+      ]);
     }
     if (!user.homeAddress && user.city) {
       await db.users.update(user.id, { homeAddress: user.city, onboardingComplete: true });
@@ -344,18 +404,27 @@ async function seedExtendedData(): Promise<void> {
           photoUrl: MARGARET_ROBERT_PHOTO,
           memoryPrompt: 'This is Robert, your grandson. He loves playing chess with you.',
         },
+        {
+          userId: user.id,
+          name: 'Lily',
+          relationship: 'Cat',
+          photoUrl: MARGARET_LILY_PHOTO,
+          memoryPrompt: 'This is Lily, your cat. She sleeps on the sunny windowsill every afternoon.',
+        },
       ]);
     }
     if (user.name === 'Margaret') {
       const faces = await db.familiarFaces.where('userId').equals(user.id).toArray();
       for (const face of faces) {
-        if (!face.id || !face.photoUrl?.includes('unsplash.com')) continue;
+        if (!face.id) continue;
         const photoUrl =
           face.name === 'Susan' ? MARGARET_SUSAN_PHOTO
           : face.name === 'Robert' ? MARGARET_ROBERT_PHOTO
           : face.name === 'Lily' ? MARGARET_LILY_PHOTO
-          : MARGARET_HERO_PHOTO;
-        await db.familiarFaces.update(face.id, { photoUrl });
+          : null;
+        if (photoUrl && face.photoUrl !== photoUrl) {
+          await db.familiarFaces.update(face.id, { photoUrl });
+        }
       }
     }
     const hasSleep = (await db.sleepLogs.where('userId').equals(user.id).count()) > 0;

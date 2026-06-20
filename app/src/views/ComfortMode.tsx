@@ -4,130 +4,10 @@ import StudioIcon from '../components/StudioIcon';
 import { useAppStore } from '../store/appStore';
 import { generateGrounding, generateNarrative } from '../services/groq';
 import { speak, stopSpeaking, unlockAudioPlayback, primeSpeechSynthesis } from '../services/elevenlabs';
+import { resumeTibetanBells, startTibetanBells, stopTibetanBells } from '../lib/tibetanBells';
 import { db } from '../db/db';
 
 type Phase = 'grounding' | 'breathing' | 'narrative' | 'done';
-
-// ── Tibetan Bell Synthesizer ─────────────────────────────────────────────────
-// Authentic Tibetan bowl frequencies (multiples of 108Hz) + 40Hz gamma binaural layer
-
-function startTibetanBells(volumeTarget = 0.48): () => void {
-  let ctx: AudioContext | null = null;
-  const nodes: AudioNode[] = [];
-  let loopId: ReturnType<typeof setInterval> | null = null;
-
-  try {
-    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    ctx = new AudioCtx();
-    if (ctx.state === 'suspended') ctx.resume();
-
-    const master = ctx.createGain();
-    master.gain.setValueAtTime(0, ctx.currentTime);
-    master.gain.linearRampToValueAtTime(volumeTarget, ctx.currentTime + 2.5);
-    master.connect(ctx.destination);
-    nodes.push(master);
-
-    // 40Hz binaural beat: left ear 200Hz, right ear 240Hz (merged mono for web)
-    // Gentle carrier at 220Hz modulated at 40Hz (gamma entrainment simulation)
-    const binauralOsc = ctx.createOscillator();
-    binauralOsc.type = 'sine';
-    binauralOsc.frequency.setValueAtTime(220, ctx.currentTime);
-    const binauralMod = ctx.createOscillator();
-    binauralMod.type = 'sine';
-    binauralMod.frequency.setValueAtTime(40, ctx.currentTime);
-    const binauralGain = ctx.createGain();
-    binauralGain.gain.setValueAtTime(0.12, ctx.currentTime);
-    const modGain = ctx.createGain();
-    modGain.gain.setValueAtTime(0.04, ctx.currentTime);
-    binauralMod.connect(modGain);
-    modGain.connect(binauralOsc.frequency);
-    binauralOsc.connect(binauralGain);
-    binauralGain.connect(master);
-    binauralOsc.start();
-    binauralMod.start();
-    nodes.push(binauralOsc, binauralMod, binauralGain, modGain);
-
-    // Tibetan bowl strike function
-    const BOWL_FREQS = [108, 216, 324, 432, 540, 648, 756];
-    function strike(freq: number, time: number, amp: number) {
-      if (!ctx) return;
-      const osc1 = ctx.createOscillator();
-      osc1.type = 'sine';
-      osc1.frequency.setValueAtTime(freq, time);
-
-      const osc2 = ctx.createOscillator();
-      osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(freq * 2.756, time);
-
-      const osc3 = ctx.createOscillator();
-      osc3.type = 'sine';
-      osc3.frequency.setValueAtTime(freq * 5.404, time);
-
-      // Convolver for natural room reverb
-      const revLen = ctx.sampleRate * 3;
-      const revBuf = ctx.createBuffer(2, revLen, ctx.sampleRate);
-      for (let ch = 0; ch < 2; ch++) {
-        const d = revBuf.getChannelData(ch);
-        for (let i = 0; i < revLen; i++) {
-          d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / revLen, 2.5) * 0.4;
-        }
-      }
-      const reverb = ctx.createConvolver();
-      reverb.buffer = revBuf;
-
-      const g1 = ctx.createGain();
-      g1.gain.setValueAtTime(amp, time);
-      g1.gain.exponentialRampToValueAtTime(0.0001, time + 5.5);
-
-      const g2 = ctx.createGain();
-      g2.gain.setValueAtTime(amp * 0.35, time);
-      g2.gain.exponentialRampToValueAtTime(0.0001, time + 3.2);
-
-      const g3 = ctx.createGain();
-      g3.gain.setValueAtTime(amp * 0.12, time);
-      g3.gain.exponentialRampToValueAtTime(0.0001, time + 1.8);
-
-      osc1.connect(g1); g1.connect(reverb);
-      osc2.connect(g2); g2.connect(reverb);
-      osc3.connect(g3); g3.connect(reverb);
-      reverb.connect(master);
-
-      osc1.start(time); osc1.stop(time + 6);
-      osc2.start(time); osc2.stop(time + 4);
-      osc3.start(time); osc3.stop(time + 2.5);
-      nodes.push(osc1, osc2, osc3, g1, g2, g3, reverb);
-    }
-
-    // Schedule initial bells
-    const now = ctx.currentTime;
-    let t = now + 1.5;
-    const scheduleNext = () => {
-      if (!ctx) return;
-      const freq = BOWL_FREQS[Math.floor(Math.random() * BOWL_FREQS.length)];
-      strike(freq, t, 0.42);
-      // Occasional harmony
-      if (Math.random() > 0.55) {
-        const harmFreq = BOWL_FREQS[Math.floor(Math.random() * BOWL_FREQS.length)];
-        strike(harmFreq, t + 0.12, 0.20);
-      }
-      t += 3.5 + Math.random() * 5;
-    };
-    for (let i = 0; i < 4; i++) scheduleNext();
-
-    loopId = setInterval(() => scheduleNext(), 4500 + Math.random() * 3500);
-
-  } catch (err) {
-    console.warn('[ComfortMode] Tibetan bells failed to start:', err);
-  }
-
-  return () => {
-    if (loopId) clearInterval(loopId);
-    if (ctx) {
-      try { nodes.forEach(n => { try { (n as AudioScheduledSourceNode).stop?.(); } catch {} }); } catch {}
-      try { ctx.close(); } catch {}
-    }
-  };
-}
 
 // ── Nature Backdrop ─────────────────────────────────────────────────────────
 // Pre-defined positions to avoid Math.random() re-render drift
@@ -194,11 +74,15 @@ export default function ComfortMode() {
     deactivateComfortMode();
   }, [deactivateComfortMode]);
 
-  // Start Tibetan bells + prime voice immediately on mount
-  useEffect(() => {
+  const ensureBells = useCallback(() => {
     unlockAudioPlayback();
+    void resumeTibetanBells(0.55);
+  }, []);
+
+  // Prime audio on mount; bells fully resume on user tap (required on iOS)
+  useEffect(() => {
     primeSpeechSynthesis();
-    const stopFn = startTibetanBells(0.48);
+    const stopFn = startTibetanBells(0.55);
     stopBellsRef.current = stopFn;
     return () => {
       stopFn();
@@ -247,6 +131,10 @@ export default function ComfortMode() {
 
     init();
   }, [user]);
+
+  useEffect(() => {
+    if (phase === 'breathing') ensureBells();
+  }, [phase, ensureBells]);
 
   const handleBreathingComplete = useCallback(async () => {
     await speak(narrativeText || 'You have done beautifully. You are safe and loved.', { clara: true });
@@ -304,6 +192,7 @@ export default function ComfortMode() {
                   <button
                     className="comfort-mode-v2__btn comfort-mode-v2__btn--primary tap-feedback"
                     onClick={() => {
+                      ensureBells();
                       void speak(`Let's breathe together, ${firstName}. Follow the circle.`, { clara: true });
                       setPhase('breathing');
                     }}

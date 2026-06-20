@@ -216,6 +216,54 @@ class RecallDB extends Dexie {
         }
       }
     });
+    this.version(6).stores({
+      users: '++id, name',
+      events: '++id, userId, timestamp, type, completed',
+      medicationLogs: '++id, userId, medicationName, timestamp',
+      acseScores: '++id, userId, timestamp',
+      supervisorAlerts: '++id, userId, timestamp, dismissed',
+      memoryAnchors: '++id, userId, generatedAt',
+      emergencyContacts: '++id, userId',
+      routineTasks: '++id, userId, period',
+      familiarFaces: '++id, userId',
+      careJournal: '++id, userId, timestamp',
+      sleepLogs: '++id, userId, date',
+    }).upgrade(async (tx) => {
+      const faces = await tx.table('familiarFaces').toArray();
+      for (const face of faces) {
+        const key = face.name.trim().toLowerCase() as keyof typeof FAMILY_PHOTOS;
+        const photo = FAMILY_PHOTOS[key];
+        if (photo) await tx.table('familiarFaces').update(face.id, { photoUrl: photo });
+      }
+
+      const users = await tx.table('users').toArray();
+      for (const user of users) {
+        if (user.name !== 'Margaret' || !user.id) continue;
+        const contacts = await tx.table('emergencyContacts').where('userId').equals(user.id).toArray();
+        const caregiverPhone = (user.caregiverPhone ?? '').replace(/\D/g, '');
+        const caregiverName = user.caregiverName?.trim().toLowerCase() ?? '';
+
+        for (const contact of contacts) {
+          const sameName = contact.name.trim().toLowerCase() === caregiverName;
+          const samePhone = contact.phone.replace(/\D/g, '') === caregiverPhone;
+          if (sameName || samePhone) {
+            await tx.table('emergencyContacts').delete(contact.id!);
+          }
+        }
+
+        const remaining = await tx.table('emergencyContacts').where('userId').equals(user.id).toArray();
+        const hasRobert = remaining.some((c) => c.name.trim().toLowerCase() === 'robert');
+        if (!hasRobert) {
+          await tx.table('emergencyContacts').add({
+            userId: user.id,
+            name: 'Robert',
+            relationship: 'Grandson',
+            phone: '+15555550187',
+            isPrimary: false,
+          });
+        }
+      }
+    });
   }
 }
 

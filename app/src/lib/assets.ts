@@ -5,9 +5,9 @@ export const LOGO_URL = `${base}logo.png`;
 export const FORGET_ME_NOT_URL = `${base}forget-me-not.png`;
 
 export const FAMILY_PHOTOS = {
-  susan: `${base}photos/susan.png`,
-  robert: `${base}photos/robert.png`,
-  lily: `${base}photos/lily.png`,
+  susan: `${base}photos/susan.png?v=2`,
+  robert: `${base}photos/robert.png?v=2`,
+  lily: `${base}photos/lily.png?v=2`,
 } as const;
 
 export function familyPhotoUrl(name: string): string | undefined {
