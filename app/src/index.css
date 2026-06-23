@@ -10057,6 +10057,11 @@ html, body, #root {
   background: transparent !important;
 }
 
+/* ── Suppress CSS opacity transition on content so GSAP can animate it cleanly ── */
+.studio-app-content {
+  transition: none !important;
+}
+
 /* ── Maximum glass card surface — individual cards only, never section wrappers ── */
 .quick-tile,
 .metric-card,
@@ -10446,4 +10451,132 @@ body[data-theme='dark'] {
     rgba(56,189,248,0.18) 48%,
     rgba(56,189,248,0.08) 52%,
     transparent      70%) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COLOR → LIQUID GLASS  — every solid fill becomes a tinted pane
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Quick-tile icon bubbles: glass tint instead of solid fill (no nested blur) ── */
+.quick-tile:nth-child(1) .quick-tile__icon {
+  background: rgba(56,189,248, 0.22) !important;
+  border: 1px solid rgba(56,189,248, 0.45) !important;
+  box-shadow: 0 2px 12px rgba(56,189,248,0.22), inset 0 1px 0 rgba(255,255,255,0.65) !important;
+  color: #0EA5E9 !important;
+}
+.quick-tile:nth-child(2) .quick-tile__icon {
+  background: rgba(249,115,22, 0.20) !important;
+  border: 1px solid rgba(249,115,22, 0.42) !important;
+  box-shadow: 0 2px 12px rgba(249,115,22,0.20), inset 0 1px 0 rgba(255,255,255,0.60) !important;
+  color: #EA6900 !important;
+}
+.quick-tile:nth-child(3) .quick-tile__icon {
+  background: rgba(34,197,94, 0.20) !important;
+  border: 1px solid rgba(34,197,94, 0.42) !important;
+  box-shadow: 0 2px 12px rgba(34,197,94,0.20), inset 0 1px 0 rgba(255,255,255,0.60) !important;
+  color: #16A34A !important;
+}
+.quick-tile:nth-child(4) .quick-tile__icon {
+  background: rgba(139,92,246, 0.20) !important;
+  border: 1px solid rgba(139,92,246, 0.42) !important;
+  box-shadow: 0 2px 12px rgba(139,92,246,0.20), inset 0 1px 0 rgba(255,255,255,0.60) !important;
+  color: #7C3AED !important;
+}
+
+/* SVG icons inside icon bubbles pick up the parent color */
+.quick-tile__icon .studio-icon,
+.quick-tile__icon svg {
+  color: inherit !important;
+  fill: currentColor !important;
+}
+
+/* ── Game badges: glass tint per game (no nested blur) ── */
+.mind-game-card__emoji--wordle {
+  background: rgba(106,170,100, 0.22) !important;
+  border: 1px solid rgba(106,170,100, 0.45) !important;
+  box-shadow: 0 2px 12px rgba(106,170,100,0.22), inset 0 1px 0 rgba(255,255,255,0.60) !important;
+  color: #3A7A35 !important;
+}
+.mind-game-card__emoji--sudoku {
+  background: rgba(74,144,217, 0.22) !important;
+  border: 1px solid rgba(74,144,217, 0.45) !important;
+  box-shadow: 0 2px 12px rgba(74,144,217,0.22), inset 0 1px 0 rgba(255,255,255,0.60) !important;
+  color: #1E5FAD !important;
+}
+.mind-game-card__emoji--connections {
+  background: rgba(186,129,197, 0.22) !important;
+  border: 1px solid rgba(186,129,197, 0.45) !important;
+  box-shadow: 0 2px 12px rgba(186,129,197,0.22), inset 0 1px 0 rgba(255,255,255,0.60) !important;
+  color: #7B3FA8 !important;
+}
+
+/* ── Active tab indicator: glass sky-blue tint (no nested blur) ── */
+.studio-tab--active::before {
+  background: rgba(14,165,233, 0.22) !important;
+  border: 1px solid rgba(14,165,233, 0.48) !important;
+  box-shadow: 0 0 14px rgba(14,165,233,0.28), inset 0 1px 0 rgba(255,255,255,0.55) !important;
+}
+
+/* ── Metric card fill bars: soft glow glass stripe ── */
+.metric-card__fill {
+  opacity: 0.75 !important;
+  filter: blur(0px) brightness(1.05) !important;
+  box-shadow: 0 0 8px currentColor !important;
+}
+
+/* ── Alert strip: vivid tinted glass ── */
+.home-alert-strip--meds {
+  background: rgba(14,165,233, 0.14) !important;
+  border: 1px solid rgba(14,165,233, 0.32) !important;
+  color: #0284C7 !important;
+}
+
+/* ── Dark mode: same glass tints but brighter borders ── */
+[data-theme='dark'] .quick-tile:nth-child(1) .quick-tile__icon {
+  background: rgba(56,189,248, 0.18) !important;
+  border: 1px solid rgba(56,189,248, 0.50) !important;
+  color: #38BDF8 !important;
+}
+[data-theme='dark'] .quick-tile:nth-child(2) .quick-tile__icon {
+  background: rgba(251,146,60, 0.18) !important;
+  border: 1px solid rgba(251,146,60, 0.50) !important;
+  color: #FB923C !important;
+}
+[data-theme='dark'] .quick-tile:nth-child(3) .quick-tile__icon {
+  background: rgba(74,222,128, 0.15) !important;
+  border: 1px solid rgba(74,222,128, 0.45) !important;
+  color: #4ADE80 !important;
+}
+[data-theme='dark'] .quick-tile:nth-child(4) .quick-tile__icon {
+  background: rgba(167,139,250, 0.15) !important;
+  border: 1px solid rgba(167,139,250, 0.45) !important;
+  color: #A78BFA !important;
+}
+
+[data-theme='dark'] .mind-game-card__emoji--wordle {
+  background: rgba(106,170,100, 0.18) !important;
+  border: 1px solid rgba(106,170,100, 0.50) !important;
+  color: #6AAA64 !important;
+}
+[data-theme='dark'] .mind-game-card__emoji--sudoku {
+  background: rgba(74,144,217, 0.18) !important;
+  border: 1px solid rgba(74,144,217, 0.50) !important;
+  color: #4A90D9 !important;
+}
+[data-theme='dark'] .mind-game-card__emoji--connections {
+  background: rgba(186,129,197, 0.18) !important;
+  border: 1px solid rgba(186,129,197, 0.50) !important;
+  color: #BA81C5 !important;
+}
+
+[data-theme='dark'] .studio-tab--active::before {
+  background: rgba(56,189,248, 0.20) !important;
+  border: 1px solid rgba(56,189,248, 0.52) !important;
+  box-shadow: 0 0 18px rgba(56,189,248,0.26), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+}
+
+[data-theme='dark'] .home-alert-strip--meds {
+  background: rgba(56,189,248, 0.12) !important;
+  border: 1px solid rgba(56,189,248, 0.35) !important;
+  color: #38BDF8 !important;
 }

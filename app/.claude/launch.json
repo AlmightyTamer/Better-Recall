@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "recall-static",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "dist", "-p", "4001"],
+      "port": 4001
+    }
+  ]
+}

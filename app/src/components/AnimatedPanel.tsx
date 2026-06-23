@@ -24,19 +24,25 @@ export default function AnimatedPanel({
       const el = ref.current;
       if (!el) return;
 
+      // Kill any in-flight tweens and reset inline styles before starting fresh
+      gsap.killTweensOf(el);
+      gsap.set(el, { clearProps: 'all' });
+
       const buttons = el.querySelectorAll<HTMLElement>('.studio-btn, .studio-input');
+
+      const onComplete = () => gsap.set(el, { clearProps: 'opacity,y,transform' });
 
       if (isFirst.current) {
         isFirst.current = false;
         gsap.fromTo(
           el,
-          { opacity: 0, y: 14, filter: 'blur(6px)' },
+          { opacity: 0, y: 14 },
           {
             opacity: 1,
             y: 0,
-            filter: 'blur(0px)',
             duration: duration(0.65),
             ease: EASE.enter,
+            onComplete,
           }
         );
         gsap.set(buttons, { opacity: 1 });
@@ -59,13 +65,13 @@ export default function AnimatedPanel({
 
       gsap.fromTo(
         el,
-        { opacity: 0, y: 18, filter: 'blur(5px)' },
+        { opacity: 0, y: 18 },
         {
           opacity: 1,
           y: 0,
-          filter: 'blur(0px)',
           duration: duration(0.55),
           ease: EASE.enter,
+          onComplete,
         }
       );
 
