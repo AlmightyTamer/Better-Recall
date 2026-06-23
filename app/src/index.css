@@ -10580,3 +10580,905 @@ body[data-theme='dark'] {
   border: 1px solid rgba(56,189,248, 0.35) !important;
   color: #38BDF8 !important;
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CERAMIC LIQUID GLASS — Apple iOS 26 / visionOS Material Max
+   Every surface: polished ceramic glazed glass. Iridescent. Luminous.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Ceramic keyframes ── */
+@keyframes ceramic-bloom {
+  0%   { opacity: 0; transform: scale(0.72) translateY(12px); filter: blur(8px); }
+  60%  { opacity: 1; filter: blur(0px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0px); }
+}
+@keyframes ceramic-pulse {
+  0%, 100% { box-shadow:
+    0 0 0 0 rgba(147,206,250,0),
+    0 30px 80px rgba(14,165,233,0.28),
+    inset 0 3px 0 rgba(255,255,255,1.0); }
+  50% { box-shadow:
+    0 0 0 18px rgba(147,206,250,0.08),
+    0 40px 100px rgba(14,165,233,0.38),
+    inset 0 3px 0 rgba(255,255,255,1.0); }
+}
+@keyframes ceramic-ring-expand {
+  0%   { opacity: 0; transform: translate(-50%,-50%) scale(0.5); }
+  60%  { opacity: 1; }
+  100% { opacity: 0.28; transform: translate(-50%,-50%) scale(1); }
+}
+@keyframes ceramic-orb-float {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  45%       { transform: translateY(-10px) scale(1.02); }
+}
+@keyframes ceramic-bg-drift {
+  0%, 100% { transform: scale(1) translate(0,0); }
+  33%       { transform: scale(1.12) translate(-3%,2%); }
+  66%       { transform: scale(0.96) translate(2%,-2%); }
+}
+@keyframes ceramic-brand-rise {
+  0%   { opacity: 0; transform: translateY(14px) scale(0.97); filter: blur(4px); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0px); }
+}
+@keyframes ceramic-shimmer-sweep {
+  0%   { background-position: 220% center; opacity: 0; }
+  8%   { opacity: 1; }
+  92%  { opacity: 1; }
+  100% { background-position: -220% center; opacity: 0; }
+}
+
+/* ── Ceramic glass tokens — upgrade ── */
+:root {
+  --ceramic-blur:    blur(44px) saturate(220%) brightness(1.05);
+  --ceramic-rim:     inset 0 2.5px 0 rgba(255,255,255,1.0),
+                     inset 0 -1.5px 0 rgba(255,255,255,0.28),
+                     inset 1.5px 0   0 rgba(255,255,255,0.16),
+                     inset -1.5px 0  0 rgba(255,255,255,0.10);
+  --ceramic-shadow:  0 16px 52px rgba(14,165,233,0.20),
+                     0 6px  18px rgba(0,0,0,0.08),
+                     0 2px  4px  rgba(0,0,0,0.05);
+  --ceramic-border:  1px solid rgba(255,255,255,0.94);
+  --ceramic-bg:      rgba(255,255,255,0.91);
+  /* Override the glass tokens for everything */
+  --glass-blur:    var(--ceramic-blur);
+  --glass-rim:     var(--ceramic-rim);
+  --glass-shadow:  var(--ceramic-shadow);
+  --glass-border:  var(--ceramic-border);
+}
+
+/* ── Root background — deeper aurora for ceramic to read against ── */
+html, body, #root {
+  background:
+    radial-gradient(ellipse 80% 55% at 10% 0%,   rgba(56,189,248,0.30) 0%, transparent 52%),
+    radial-gradient(ellipse 50% 40% at 90% 8%,   rgba(139,92,246,0.18) 0%, transparent 48%),
+    radial-gradient(ellipse 65% 60% at 60% 90%,  rgba(14,165,233,0.22) 0%, transparent 55%),
+    radial-gradient(ellipse 42% 38% at 2%  78%,  rgba(99,102,241,0.12) 0%, transparent 44%),
+    radial-gradient(ellipse 55% 45% at 92% 55%,  rgba(6,182,212,0.16)  0%, transparent 50%),
+    radial-gradient(ellipse 38% 32% at 48% 48%,  rgba(186,230,253,0.14) 0%, transparent 42%),
+    linear-gradient(155deg, #EBF8FF 0%, #BAE6FD 22%, #C7EEFF 50%, #E9F5FF 78%, #F0F9FF 100%) !important;
+  background-attachment: fixed !important;
+}
+
+/* ══════════════════════════════════════════════
+   CERAMIC SPLASH / LOADING SCREEN
+   ══════════════════════════════════════════════ */
+
+.sl-splash {
+  background:
+    radial-gradient(ellipse 80% 55% at 10% 0%,   rgba(56,189,248,0.30) 0%, transparent 52%),
+    radial-gradient(ellipse 50% 40% at 90% 8%,   rgba(139,92,246,0.18) 0%, transparent 48%),
+    radial-gradient(ellipse 65% 60% at 60% 90%,  rgba(14,165,233,0.22) 0%, transparent 55%),
+    linear-gradient(155deg, #EBF8FF 0%, #BAE6FD 22%, #C7EEFF 50%, #E9F5FF 78%, #F0F9FF 100%) !important;
+  gap: 32px !important;
+}
+
+/* Ambient background light orbs behind everything */
+.sl-bg-orb {
+  position: fixed !important;
+  border-radius: 50% !important;
+  pointer-events: none !important;
+  filter: blur(70px) !important;
+  animation: ceramic-bg-drift 10s ease-in-out infinite !important;
+}
+.sl-bg-orb--1 {
+  width: 480px; height: 480px;
+  top: -80px; left: -120px;
+  background: radial-gradient(circle, rgba(56,189,248,0.32), transparent 70%) !important;
+  animation-delay: 0s !important;
+}
+.sl-bg-orb--2 {
+  width: 360px; height: 360px;
+  bottom: -60px; right: -80px;
+  background: radial-gradient(circle, rgba(139,92,246,0.22), transparent 70%) !important;
+  animation-delay: -4s !important;
+}
+.sl-bg-orb--3 {
+  width: 280px; height: 280px;
+  top: 40%; left: 55%;
+  background: radial-gradient(circle, rgba(6,182,212,0.18), transparent 70%) !important;
+  animation-delay: -7s !important;
+}
+
+/* Logo stage — enlarged for ceramic orb */
+.sl-logo-stage {
+  width: 220px !important;
+  height: 220px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+}
+
+/* Ambient glow bloom */
+.sl-logo-glow {
+  width: 260px !important;
+  height: 260px !important;
+  background: radial-gradient(circle, rgba(56,189,248,0.40) 0%, rgba(99,102,241,0.14) 42%, transparent 68%) !important;
+  animation: ceramic-bg-drift 5s ease-in-out infinite !important;
+}
+
+/* Expanding ceramic ring */
+.sl-logo-ring {
+  width: 200px !important;
+  height: 200px !important;
+  border: 1.5px solid rgba(255,255,255,0.70) !important;
+  animation: ceramic-ring-expand 1.6s cubic-bezier(0.22,1,0.36,1) 0.15s both !important;
+}
+
+/* ── The ceramic orb — the core element ── */
+.sl-ceramic-orb {
+  position: relative !important;
+  width: 160px !important;
+  height: 160px !important;
+  border-radius: 50% !important;
+  background: rgba(255,255,255,0.88) !important;
+  backdrop-filter: blur(44px) saturate(220%) brightness(1.06) !important;
+  -webkit-backdrop-filter: blur(44px) saturate(220%) brightness(1.06) !important;
+  border: 1.5px solid rgba(255,255,255,0.95) !important;
+  box-shadow:
+    0 32px 80px rgba(14,165,233,0.26),
+    0 8px 24px rgba(0,0,0,0.08),
+    inset 0 3px 0 rgba(255,255,255,1.0),
+    inset 0 -2px 0 rgba(255,255,255,0.30) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  animation: ceramic-bloom 1.0s cubic-bezier(0.22,1,0.36,1) 0.05s both,
+             ceramic-pulse 3.5s ease-in-out 1.2s infinite,
+             ceramic-orb-float 5s ease-in-out 1.2s infinite !important;
+  z-index: 2 !important;
+}
+
+/* Ceramic glaze — the specular highlight radial gradient on top of orb */
+.sl-ceramic-orb__glaze {
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: 50% !important;
+  background:
+    radial-gradient(ellipse 70% 42% at 50% 6%, rgba(255,255,255,0.92), rgba(255,255,255,0) 65%),
+    radial-gradient(ellipse 38% 28% at 28% 18%, rgba(255,255,255,0.60), rgba(255,255,255,0) 50%) !important;
+  pointer-events: none !important;
+  z-index: 3 !important;
+}
+
+/* Inner: the mark itself */
+.sl-ceramic-orb__inner {
+  position: relative !important;
+  z-index: 2 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Bottom rim reflection */
+.sl-ceramic-orb__rim {
+  position: absolute !important;
+  bottom: 12px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 60% !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  background: rgba(255,255,255,0.40) !important;
+  filter: blur(4px) !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+/* Brand block */
+.sl-brand-block {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+/* Brand text — ceramic etched */
+.sl-brand {
+  font-size: 48px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.06em !important;
+  color: transparent !important;
+  background: linear-gradient(160deg,
+    rgba(14,80,140,0.95) 0%,
+    rgba(14,120,200,0.90) 40%,
+    rgba(56,189,248,0.85) 70%,
+    rgba(14,100,170,0.92) 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  text-shadow: none !important;
+  opacity: 0 !important;
+  filter: none !important;
+}
+.sl-splash--title .sl-brand,
+.sl-splash--exit .sl-brand {
+  animation: ceramic-brand-rise 0.85s cubic-bezier(0.22,1,0.36,1) both !important;
+}
+
+/* Tagline — frosted glass pill */
+.sl-tagline {
+  font-size: 12px !important;
+  letter-spacing: 0.20em !important;
+  color: rgba(14,90,160,0.72) !important;
+  opacity: 0 !important;
+  background: rgba(255,255,255,0.55) !important;
+  padding: 5px 16px !important;
+  border-radius: 99px !important;
+  border: 1px solid rgba(255,255,255,0.80) !important;
+  box-shadow: 0 2px 10px rgba(14,165,233,0.10),
+              inset 0 1px 0 rgba(255,255,255,0.90) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+.sl-splash--title .sl-tagline,
+.sl-splash--exit .sl-tagline {
+  animation: ceramic-brand-rise 0.75s cubic-bezier(0.22,1,0.36,1) 0.18s both !important;
+}
+
+/* ══════════════════════════════════════════════
+   CERAMIC CARD SURFACE — all cards
+   ══════════════════════════════════════════════ */
+
+/* Add glaze pseudo to every card */
+.quick-tile,
+.metric-card,
+.mind-game-card,
+.where-am-i-card,
+.familiar-face-card,
+.safety-circle-card,
+.event-card,
+.disclaimer-card,
+.memory-thread-card,
+.dash-login__card,
+.ios-list-cards,
+.studio-card,
+.state-recon-card,
+.card {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* Ceramic glaze specular — mounted on ::before of every card */
+.quick-tile::before,
+.metric-card::before,
+.mind-game-card::before,
+.where-am-i-card::before,
+.familiar-face-card::before,
+.safety-circle-card::before,
+.event-card::before,
+.disclaimer-card::before,
+.memory-thread-card::before,
+.dash-hero::before,
+.ios-list-cards::before,
+.studio-card::before,
+.state-recon-card::before,
+.card::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: inherit !important;
+  pointer-events: none !important;
+  z-index: 10 !important;
+  background:
+    radial-gradient(ellipse 90% 38% at 50% 0%, rgba(255,255,255,0.84), rgba(255,255,255,0) 60%),
+    radial-gradient(ellipse 40% 24% at 20% 6%, rgba(255,255,255,0.52), rgba(255,255,255,0) 48%) !important;
+}
+
+/* Ceramic surface — all individual cards */
+.quick-tile,
+.metric-card,
+.mind-game-card,
+.where-am-i-card,
+.familiar-face-card,
+.safety-circle-card,
+.event-card,
+.disclaimer-card,
+.memory-thread-card {
+  background: var(--ceramic-bg) !important;
+  backdrop-filter: var(--ceramic-blur) !important;
+  -webkit-backdrop-filter: var(--ceramic-blur) !important;
+  border: var(--ceramic-border) !important;
+  box-shadow: var(--ceramic-shadow), var(--ceramic-rim) !important;
+  border-radius: 24px !important;
+}
+
+/* Section wrappers — ceramic but no blur (no nesting) */
+.ios-list-cards,
+.studio-card,
+.state-recon-card,
+.card {
+  background: rgba(255,255,255,0.92) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid rgba(255,255,255,0.95) !important;
+  box-shadow: 0 6px 28px rgba(14,165,233,0.12), 0 2px 6px rgba(0,0,0,0.05),
+              inset 0 1px 0 rgba(255,255,255,1.0) !important;
+  border-radius: 22px !important;
+}
+
+/* Hover ceramic lift */
+.quick-tile:hover,
+.metric-card:hover,
+.mind-game-card:hover,
+.where-am-i-card:hover {
+  transform: translateY(-4px) scale(1.008) !important;
+  background: rgba(255,255,255,0.95) !important;
+  box-shadow:
+    0 28px 70px rgba(14,165,233,0.28),
+    0 8px 24px rgba(0,0,0,0.07),
+    0 0 0 1px rgba(255,255,255,0.90),
+    inset 0 2.5px 0 rgba(255,255,255,1.0),
+    inset 0 -1.5px 0 rgba(255,255,255,0.30) !important;
+}
+
+/* ══════════════════════════════════════════════
+   CERAMIC HERO CARD
+   ══════════════════════════════════════════════ */
+.dash-hero {
+  background: rgba(255,255,255,0.84) !important;
+  backdrop-filter: blur(44px) saturate(220%) brightness(1.04) !important;
+  -webkit-backdrop-filter: blur(44px) saturate(220%) brightness(1.04) !important;
+  border: 1px solid rgba(255,255,255,0.96) !important;
+  box-shadow:
+    0 16px 52px rgba(14,165,233,0.18),
+    0 4px 14px rgba(0,0,0,0.06),
+    inset 0 2.5px 0 rgba(255,255,255,1.0),
+    inset 0 -1.5px 0 rgba(255,255,255,0.28) !important;
+  border-radius: 28px !important;
+}
+
+/* ══════════════════════════════════════════════
+   CERAMIC TAB BAR & HEADER
+   ══════════════════════════════════════════════ */
+.studio-tab-bar {
+  background: rgba(240,250,255,0.88) !important;
+  backdrop-filter: blur(66px) saturate(240%) brightness(1.06) !important;
+  -webkit-backdrop-filter: blur(66px) saturate(240%) brightness(1.06) !important;
+  border-top: 1px solid rgba(255,255,255,0.95) !important;
+  box-shadow:
+    0 -8px 36px rgba(14,165,233,0.10),
+    inset 0 1.5px 0 rgba(255,255,255,1.0) !important;
+}
+
+.studio-header {
+  background: rgba(235,248,255,0.90) !important;
+  backdrop-filter: blur(66px) saturate(220%) brightness(1.05) !important;
+  -webkit-backdrop-filter: blur(66px) saturate(220%) brightness(1.06) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.94) !important;
+  box-shadow:
+    0 5px 32px rgba(14,165,233,0.10),
+    inset 0 -1px 0 rgba(255,255,255,0.80) !important;
+}
+
+/* ══════════════════════════════════════════════
+   CERAMIC LOGO TEXT
+   ══════════════════════════════════════════════ */
+.studio-header .studio-header__wordmark,
+.studio-header [class*="wordmark"],
+.studio-header [class*="brand"],
+.recall-logo__word {
+  background: linear-gradient(135deg,
+    rgba(14,80,140,0.95) 0%,
+    rgba(14,120,200,0.90) 45%,
+    rgba(56,189,248,0.88) 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.04em !important;
+}
+
+/* Ceramic logo mark wrapper */
+.recall-logo__mark svg,
+.forget-me-not-mark {
+  filter: drop-shadow(0 2px 6px rgba(56,130,220,0.28)) !important;
+}
+
+/* ══════════════════════════════════════════════
+   CERAMIC DISCLAIMER SCREEN
+   ══════════════════════════════════════════════ */
+.disclaimer-overlay {
+  background:
+    radial-gradient(ellipse 80% 55% at 10% 0%,   rgba(56,189,248,0.30) 0%, transparent 52%),
+    radial-gradient(ellipse 50% 40% at 90% 8%,   rgba(139,92,246,0.18) 0%, transparent 48%),
+    radial-gradient(ellipse 65% 60% at 60% 90%,  rgba(14,165,233,0.22) 0%, transparent 55%),
+    linear-gradient(155deg, #EBF8FF 0%, #BAE6FD 22%, #C7EEFF 50%, #E9F5FF 78%, #F0F9FF 100%) !important;
+}
+
+.disclaimer-card {
+  background: rgba(255,255,255,0.91) !important;
+  backdrop-filter: blur(52px) saturate(230%) brightness(1.06) !important;
+  -webkit-backdrop-filter: blur(52px) saturate(230%) brightness(1.06) !important;
+  border: 1.5px solid rgba(255,255,255,0.96) !important;
+  box-shadow:
+    0 48px 120px rgba(14,165,233,0.22),
+    0 16px 40px rgba(0,0,0,0.08),
+    0 4px 10px rgba(0,0,0,0.04),
+    inset 0 3px 0 rgba(255,255,255,1.0),
+    inset 0 -2px 0 rgba(255,255,255,0.30) !important;
+  border-radius: 32px !important;
+  animation: ceramic-bloom 0.9s cubic-bezier(0.22,1,0.36,1) both !important;
+}
+
+/* Ceramic checkbox */
+.disclaimer-card__check input[type="checkbox"] {
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 8px !important;
+  border: 1.5px solid rgba(14,165,233,0.55) !important;
+  background: rgba(255,255,255,0.80) !important;
+  backdrop-filter: blur(12px) !important;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.06),
+              0 0 0 4px rgba(14,165,233,0.0) !important;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease !important;
+  accent-color: #0EA5E9 !important;
+}
+.disclaimer-card__check input[type="checkbox"]:checked {
+  box-shadow: 0 0 0 3px rgba(14,165,233,0.18) !important;
+}
+
+/* Ceramic CTA button */
+.studio-btn--primary.disclaimer-card__cta {
+  background: linear-gradient(160deg, rgba(56,189,248,0.92), rgba(14,120,220,0.90)) !important;
+  border: 1px solid rgba(255,255,255,0.50) !important;
+  box-shadow:
+    0 8px 28px rgba(14,165,233,0.38),
+    0 2px 6px rgba(0,0,0,0.10),
+    inset 0 1.5px 0 rgba(255,255,255,0.55) !important;
+  border-radius: 16px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  color: #fff !important;
+  transition: transform 0.18s ease, box-shadow 0.18s ease !important;
+}
+.studio-btn--primary.disclaimer-card__cta:not(:disabled):hover {
+  transform: translateY(-2px) !important;
+  box-shadow:
+    0 14px 40px rgba(14,165,233,0.48),
+    0 4px 10px rgba(0,0,0,0.10),
+    inset 0 1.5px 0 rgba(255,255,255,0.65) !important;
+}
+.studio-btn--primary.disclaimer-card__cta:disabled {
+  background: rgba(200,220,240,0.60) !important;
+  box-shadow: none !important;
+  border-color: rgba(255,255,255,0.60) !important;
+  color: rgba(100,140,180,0.70) !important;
+}
+
+/* ══════════════════════════════════════════════
+   CERAMIC LOGIN SCREEN
+   ══════════════════════════════════════════════ */
+.dash-login {
+  background:
+    radial-gradient(ellipse 80% 55% at 10% 0%,   rgba(56,189,248,0.30) 0%, transparent 52%),
+    radial-gradient(ellipse 50% 40% at 90% 8%,   rgba(139,92,246,0.18) 0%, transparent 48%),
+    radial-gradient(ellipse 65% 60% at 60% 90%,  rgba(14,165,233,0.22) 0%, transparent 55%),
+    linear-gradient(155deg, #EBF8FF 0%, #BAE6FD 22%, #C7EEFF 50%, #E9F5FF 78%, #F0F9FF 100%) !important;
+}
+
+/* Login wordmark — ceramic gradient text */
+.dash-login__wordmark {
+  background: linear-gradient(135deg,
+    rgba(14,80,140,0.96) 0%,
+    rgba(14,130,210,0.90) 45%,
+    rgba(56,189,248,0.86) 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.04em !important;
+  font-size: 32px !important;
+}
+
+/* Login icon wrapper — ceramic orb */
+.dash-login__icon-wrap {
+  background: rgba(255,255,255,0.88) !important;
+  backdrop-filter: blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+  border: 1.5px solid rgba(255,255,255,0.96) !important;
+  box-shadow:
+    0 8px 28px rgba(14,165,233,0.22),
+    inset 0 2px 0 rgba(255,255,255,1.0) !important;
+  border-radius: 22px !important;
+  width: 58px !important;
+  height: 58px !important;
+}
+.dash-login__icon-wrap svg *,
+.dash-login__icon-wrap .studio-icon {
+  fill: url(#fm-petal-body) !important;
+  color: #0EA5E9 !important;
+}
+
+/* Login card — deepest ceramic */
+.dash-login__card {
+  background: rgba(255,255,255,0.90) !important;
+  backdrop-filter: blur(52px) saturate(230%) brightness(1.06) !important;
+  -webkit-backdrop-filter: blur(52px) saturate(230%) brightness(1.06) !important;
+  border: 1.5px solid rgba(255,255,255,0.96) !important;
+  box-shadow:
+    0 48px 120px rgba(14,165,233,0.22),
+    0 16px 40px rgba(0,0,0,0.08),
+    0 4px 10px rgba(0,0,0,0.04),
+    inset 0 3px 0 rgba(255,255,255,1.0),
+    inset 0 -2px 0 rgba(255,255,255,0.30) !important;
+  border-radius: 32px !important;
+}
+
+/* Ceramic glass orbs on login — enhanced */
+.lg-login-orbs {
+  margin-bottom: 4px !important;
+}
+.lg-login-orb {
+  background: rgba(255,255,255,0.78) !important;
+  border: 1.5px solid rgba(255,255,255,0.94) !important;
+  box-shadow:
+    0 8px 24px rgba(14,165,233,0.20),
+    inset 0 2px 0 rgba(255,255,255,1.0) !important;
+  backdrop-filter: blur(18px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(160%) !important;
+}
+.lg-login-orb__shine {
+  background:
+    radial-gradient(ellipse 70% 42% at 50% 6%, rgba(255,255,255,0.90), rgba(255,255,255,0) 60%),
+    radial-gradient(ellipse 38% 28% at 26% 18%, rgba(255,255,255,0.55), rgba(255,255,255,0) 48%) !important;
+}
+
+/* Login buttons — ceramic pill */
+.dash-btn {
+  background: rgba(255,255,255,0.88) !important;
+  border: 1px solid rgba(255,255,255,0.94) !important;
+  box-shadow:
+    0 4px 16px rgba(14,165,233,0.12),
+    0 1px 3px rgba(0,0,0,0.05),
+    inset 0 1.5px 0 rgba(255,255,255,1.0) !important;
+  border-radius: 18px !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+.dash-btn::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: inherit !important;
+  background:
+    radial-gradient(ellipse 90% 36% at 50% 0%, rgba(255,255,255,0.76), rgba(255,255,255,0) 56%),
+    radial-gradient(ellipse 36% 22% at 16% 8%, rgba(255,255,255,0.48), rgba(255,255,255,0) 44%) !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+.dash-btn:hover {
+  transform: translateY(-2px) scale(1.01) !important;
+  background: rgba(255,255,255,0.95) !important;
+  box-shadow:
+    0 12px 36px rgba(14,165,233,0.22),
+    0 3px 8px rgba(0,0,0,0.06),
+    inset 0 2px 0 rgba(255,255,255,1.0) !important;
+}
+.dash-btn--primary {
+  background: linear-gradient(158deg, rgba(56,189,248,0.90), rgba(14,120,220,0.88)) !important;
+  border-color: rgba(255,255,255,0.50) !important;
+  box-shadow:
+    0 8px 28px rgba(14,165,233,0.36),
+    0 2px 6px rgba(0,0,0,0.08),
+    inset 0 1.5px 0 rgba(255,255,255,0.60) !important;
+  color: #fff !important;
+}
+.dash-btn--primary:hover {
+  background: linear-gradient(158deg, rgba(72,200,255,0.94), rgba(20,138,235,0.92)) !important;
+  box-shadow:
+    0 16px 44px rgba(14,165,233,0.44),
+    0 4px 10px rgba(0,0,0,0.10),
+    inset 0 2px 0 rgba(255,255,255,0.65) !important;
+}
+.dash-btn__icon-wrap {
+  background: rgba(255,255,255,0.30) !important;
+  border: 1px solid rgba(255,255,255,0.50) !important;
+  border-radius: 12px !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.70) !important;
+}
+.dash-btn__avatar {
+  background: rgba(14,165,233,0.18) !important;
+  border: 1.5px solid rgba(14,165,233,0.35) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.70) !important;
+  color: #0369A1 !important;
+  font-weight: 700 !important;
+}
+
+/* Ceramic input */
+.dash-input {
+  background: rgba(255,255,255,0.70) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  border: 1.5px solid rgba(255,255,255,0.86) !important;
+  box-shadow:
+    inset 0 1px 4px rgba(0,0,0,0.04),
+    inset 0 2px 0 rgba(255,255,255,0.80),
+    0 2px 8px rgba(0,0,0,0.04) !important;
+  border-radius: 14px !important;
+}
+.dash-input:focus {
+  border-color: rgba(14,165,233,0.60) !important;
+  box-shadow:
+    0 0 0 4px rgba(14,165,233,0.12),
+    inset 0 1px 4px rgba(0,0,0,0.04) !important;
+}
+
+/* Back button */
+.dash-back {
+  color: rgba(14,120,200,0.88) !important;
+  font-weight: 600 !important;
+  font-size: 15px !important;
+}
+
+/* ══════════════════════════════════════════════
+   CERAMIC ICON BUTTONS
+   ══════════════════════════════════════════════ */
+.studio-icon-btn {
+  background: rgba(255,255,255,0.78) !important;
+  backdrop-filter: blur(28px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
+  border: 1.5px solid rgba(255,255,255,0.92) !important;
+  box-shadow:
+    0 3px 12px rgba(14,165,233,0.10),
+    0 1px 3px rgba(0,0,0,0.05),
+    inset 0 2px 0 rgba(255,255,255,1.0) !important;
+  border-radius: 16px !important;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease !important;
+}
+.studio-icon-btn:hover {
+  background: rgba(255,255,255,0.94) !important;
+  transform: translateY(-2px) scale(1.05) !important;
+  box-shadow:
+    0 8px 24px rgba(14,165,233,0.22),
+    inset 0 2px 0 rgba(255,255,255,1.0) !important;
+}
+
+/* ══════════════════════════════════════════════
+   CERAMIC QUICK-TILE ICON BUBBLES  
+   (glass tint, ceramic specular, no nested blur)
+   ══════════════════════════════════════════════ */
+.quick-tile__icon {
+  border-radius: 18px !important;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.12),
+              inset 0 1.5px 0 rgba(255,255,255,0.80) !important;
+  position: relative !important;
+}
+/* Specular on icon bubble */
+.quick-tile__icon::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: inherit !important;
+  background: radial-gradient(ellipse 80% 40% at 50% 4%,
+    rgba(255,255,255,0.80), rgba(255,255,255,0) 58%) !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+/* ══════════════════════════════════════════════
+   CERAMIC GAME BADGES — richer tint + specular
+   ══════════════════════════════════════════════ */
+.mind-game-card__emoji--wordle {
+  background: rgba(106,170,100,0.25) !important;
+  border: 1.5px solid rgba(106,170,100,0.50) !important;
+  box-shadow: 0 3px 14px rgba(106,170,100,0.26),
+              inset 0 1.5px 0 rgba(255,255,255,0.75) !important;
+}
+.mind-game-card__emoji--sudoku {
+  background: rgba(74,144,217,0.25) !important;
+  border: 1.5px solid rgba(74,144,217,0.50) !important;
+  box-shadow: 0 3px 14px rgba(74,144,217,0.26),
+              inset 0 1.5px 0 rgba(255,255,255,0.75) !important;
+}
+.mind-game-card__emoji--connections {
+  background: rgba(186,129,197,0.25) !important;
+  border: 1.5px solid rgba(186,129,197,0.50) !important;
+  box-shadow: 0 3px 14px rgba(186,129,197,0.26),
+              inset 0 1.5px 0 rgba(255,255,255,0.75) !important;
+}
+
+/* ══════════════════════════════════════════════
+   CERAMIC SHIMMER SWEEP — all cards
+   ══════════════════════════════════════════════ */
+.quick-tile::after,
+.metric-card::after,
+.mind-game-card::after {
+  background: linear-gradient(
+    112deg,
+    transparent      28%,
+    rgba(255,255,255,0.72) 46%,
+    rgba(255,255,255,0.90) 50%,
+    rgba(255,255,255,0.72) 54%,
+    transparent      72%) !important;
+  background-size: 260% 100% !important;
+  background-position: 220% center !important;
+  z-index: 5 !important;
+}
+.quick-tile:hover::after,
+.metric-card:hover::after,
+.mind-game-card:hover::after {
+  animation: ceramic-shimmer-sweep 0.7s ease both !important;
+  opacity: 1 !important;
+}
+
+/* ══════════════════════════════════════════════
+   CERAMIC GAME MODAL
+   ══════════════════════════════════════════════ */
+.game-modal__backdrop {
+  backdrop-filter: blur(44px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(44px) saturate(200%) !important;
+  background: rgba(6,22,50,0.55) !important;
+}
+
+/* ══════════════════════════════════════════════
+   DARK MODE CERAMIC — Deep Void Crystal
+   ══════════════════════════════════════════════ */
+[data-theme='dark'] {
+  --ceramic-blur:   blur(44px) saturate(200%) brightness(1.15);
+  --ceramic-rim:    inset 0 2.5px 0 rgba(56,189,248,0.40),
+                    inset 0 -1.5px 0 rgba(56,189,248,0.12),
+                    inset 1.5px 0   0 rgba(56,189,248,0.08),
+                    inset -1.5px 0  0 rgba(56,189,248,0.05);
+  --ceramic-shadow: 0 16px 60px rgba(0,0,0,0.55),
+                    0 6px  20px rgba(0,0,0,0.32),
+                    0 0 80px rgba(56,189,248,0.06);
+  --ceramic-border: 1px solid rgba(56,189,248,0.28);
+  --ceramic-bg:     rgba(8,24,52,0.86);
+  --glass-blur:    var(--ceramic-blur);
+  --glass-rim:     var(--ceramic-rim);
+  --glass-shadow:  var(--ceramic-shadow);
+  --glass-border:  var(--ceramic-border);
+}
+
+[data-theme='dark'] .sl-splash,
+[data-theme='dark'] .disclaimer-overlay,
+[data-theme='dark'] .dash-login {
+  background:
+    radial-gradient(ellipse 80% 55% at 10% 0%,  rgba(14,165,233,0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 90% 8%,  rgba(99,102,241,0.12) 0%, transparent 48%),
+    radial-gradient(ellipse 65% 60% at 60% 90%, rgba(56,189,248,0.14) 0%, transparent 55%),
+    linear-gradient(155deg, #040D1A 0%, #071626 30%, #0A1E38 65%, #050F1E 100%) !important;
+}
+
+[data-theme='dark'] .sl-ceramic-orb {
+  background: rgba(10,28,60,0.90) !important;
+  border-color: rgba(56,189,248,0.30) !important;
+  box-shadow:
+    0 32px 80px rgba(0,0,0,0.60),
+    0 8px 24px rgba(0,0,0,0.40),
+    inset 0 3px 0 rgba(56,189,248,0.36),
+    inset 0 -2px 0 rgba(56,189,248,0.10) !important;
+}
+[data-theme='dark'] .sl-ceramic-orb__glaze {
+  background:
+    radial-gradient(ellipse 70% 42% at 50% 6%, rgba(56,189,248,0.28), rgba(255,255,255,0) 65%),
+    radial-gradient(ellipse 38% 28% at 28% 18%, rgba(56,189,248,0.14), rgba(255,255,255,0) 50%) !important;
+}
+[data-theme='dark'] .sl-brand {
+  background: linear-gradient(160deg,
+    rgba(186,230,253,0.95) 0%,
+    rgba(56,189,248,0.92) 45%,
+    rgba(147,210,255,0.88) 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+[data-theme='dark'] .sl-tagline {
+  background: rgba(10,30,60,0.70) !important;
+  color: rgba(147,210,255,0.80) !important;
+  border-color: rgba(56,189,248,0.28) !important;
+}
+
+[data-theme='dark'] .quick-tile::before,
+[data-theme='dark'] .metric-card::before,
+[data-theme='dark'] .mind-game-card::before,
+[data-theme='dark'] .where-am-i-card::before,
+[data-theme='dark'] .familiar-face-card::before,
+[data-theme='dark'] .card::before,
+[data-theme='dark'] .ios-list-cards::before,
+[data-theme='dark'] .studio-card::before {
+  background:
+    radial-gradient(ellipse 90% 38% at 50% 0%, rgba(56,189,248,0.22), rgba(255,255,255,0) 60%),
+    radial-gradient(ellipse 40% 24% at 20% 6%, rgba(56,189,248,0.12), rgba(255,255,255,0) 48%) !important;
+}
+
+[data-theme='dark'] .quick-tile,
+[data-theme='dark'] .metric-card,
+[data-theme='dark'] .mind-game-card,
+[data-theme='dark'] .where-am-i-card,
+[data-theme='dark'] .familiar-face-card,
+[data-theme='dark'] .event-card,
+[data-theme='dark'] .disclaimer-card,
+[data-theme='dark'] .memory-thread-card {
+  background: var(--ceramic-bg) !important;
+  border: var(--ceramic-border) !important;
+  box-shadow: var(--ceramic-shadow), var(--ceramic-rim) !important;
+}
+
+[data-theme='dark'] .disclaimer-card,
+[data-theme='dark'] .dash-login__card {
+  background: rgba(8,22,52,0.90) !important;
+  box-shadow:
+    0 48px 120px rgba(0,0,0,0.70),
+    0 16px 40px rgba(0,0,0,0.45),
+    inset 0 3px 0 rgba(56,189,248,0.32),
+    inset 0 -2px 0 rgba(56,189,248,0.08) !important;
+  border: 1.5px solid rgba(56,189,248,0.24) !important;
+}
+
+[data-theme='dark'] .dash-btn {
+  background: rgba(14,36,72,0.88) !important;
+  border-color: rgba(56,189,248,0.26) !important;
+  box-shadow:
+    0 4px 16px rgba(0,0,0,0.40),
+    inset 0 1.5px 0 rgba(56,189,248,0.28) !important;
+  color: rgba(186,230,253,0.95) !important;
+}
+[data-theme='dark'] .dash-btn::before {
+  background:
+    radial-gradient(ellipse 90% 36% at 50% 0%, rgba(56,189,248,0.16), rgba(255,255,255,0) 56%) !important;
+}
+[data-theme='dark'] .dash-btn:hover {
+  background: rgba(20,50,96,0.90) !important;
+  box-shadow:
+    0 12px 36px rgba(0,0,0,0.50),
+    0 0 20px rgba(56,189,248,0.12),
+    inset 0 2px 0 rgba(56,189,248,0.32) !important;
+}
+[data-theme='dark'] .dash-btn--primary {
+  background: linear-gradient(158deg, rgba(14,130,220,0.90), rgba(56,189,248,0.85)) !important;
+  color: #fff !important;
+}
+
+[data-theme='dark'] .dash-login__wordmark,
+[data-theme='dark'] .recall-logo__word {
+  background: linear-gradient(135deg,
+    rgba(186,230,253,0.96) 0%,
+    rgba(56,189,248,0.92) 50%,
+    rgba(147,210,255,0.88) 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+
+[data-theme='dark'] .studio-icon-btn {
+  background: rgba(14,40,82,0.80) !important;
+  border-color: rgba(56,189,248,0.28) !important;
+  box-shadow:
+    0 3px 12px rgba(0,0,0,0.40),
+    inset 0 2px 0 rgba(56,189,248,0.28) !important;
+}
+
+
+/* ── Panel enter animation — replaces GSAP, immune to re-render interruption ── */
+@keyframes panel-enter {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.panel-enter {
+  animation: panel-enter 0.60s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel-enter { animation: none; opacity: 1; transform: none; }
+}
